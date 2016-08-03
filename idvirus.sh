@@ -292,7 +292,7 @@ if [ -f *R2* ]; then
     rm -r trimmed_reads
     rm "$forReads"
     rm "$revReads"
-    
+   
     forReads=`ls | grep _R1`
     echo "Forward Reads to be used after trimmed: $forReads"
     
@@ -379,10 +379,12 @@ if [[ $sampleType == "paired" ]]; then
 fi
 
 #Calculate count of reads in each file
-forCount=`grep -c '^+$' $forReads | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta'`
+forCount=`zgrep -c '^+$' $forReads | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta'`
 echo "R1 read count: $forCount"
+echo "forRead: $forReads"
+
 if [[ $sampleType == "paired" ]]; then
-    revCount=`grep -c '^+$' $revReads | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta'`
+    revCount=`zgrep -c '^+$' $revReads | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta'`
 fi
 
 if [[ $sampleType == "paired" ]]; then
@@ -392,8 +394,8 @@ if [[ $sampleType == "paired" ]]; then
     echo "R1 file size: ${forFileSize}, read count: $forCount" >> ${emailbody}
    echo "R2 file size: ${revFileSize}, read count: $revCount" >> ${emailbody}
 else
-    echo "Single fastq file size: ${forFileSize}, read count: $forCount" >> $summaryfile
-    echo "Single fastq file size: ${forFileSize}, read count: $forCount" >> $emailbody
+    echo "Single fastq.gz file size: ${forFileSize}, read count: $forCount" >> $summaryfile
+    echo "Single fastq.gz file size: ${forFileSize}, read count: $forCount" >> $emailbody
 fi
 
 forsize=`ls -lh $forReads | awk '{print $5}'`
@@ -407,7 +409,7 @@ echo "" >> ${mytex}.filestats
 echo "\begin{table}[H]" >> ${mytex}.filestats
 echo "\begin{tabular}{ l | p{7cm} | p{7cm} }" >> ${mytex}.filestats
 echo "\hline" >> ${mytex}.filestats
-echo "file name & $forFile & $revFile \\\\ " | sed "s/$n[._]//g" | sed 's/_/\\_/g' >> ${mytex}.filestats
+echo "file name & $forReads & $revReads \\\\ " | sed "s/$n[._]//g" | sed 's/_/\\_/g' >> ${mytex}.filestats
 echo "\hline \hline" >> ${mytex}.filestats
 echo "read count & $forCount & $revCount \\\\ " >> ${mytex}.filestats
 echo "\hline" >> ${mytex}.filestats
