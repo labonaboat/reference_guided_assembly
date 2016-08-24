@@ -235,6 +235,7 @@ echo "Core number being used: $NR_CPUS"
 sleep 4
 
 mkdir originalreads
+pigz *fastq
 cp *fastq* originalreads
 
 # Unzip files if needed, else put std error to null
@@ -1638,7 +1639,6 @@ function ha_amino_acid_finder () {
 
 # Create "here-document" to prevent a dependent file.
 cat >./ha_amino_acid_finder.py <<EOL
-
 #!/usr/bin/env python
 
 import sys
@@ -1668,6 +1668,8 @@ chmod 755 ./ha_amino_acid_finder.py
 ./ha_amino_acid_finder.py "segment4-HA.fasta" > ha_amino_acid_finder_output.txt
 
 }
+
+ha_amino_acid_finder
 
 ###########################
 echo "Making IRD for: $sampleName"
