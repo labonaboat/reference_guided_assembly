@@ -1631,6 +1631,45 @@ rm param.txt
 fi
 
 ###########################
+# Get amino acid sequence of segment 4 - HA
+# Helps determine pathogenicity
+
+function ha_amino_acid_finder () {
+
+# Create "here-document" to prevent a dependent file.
+cat >./ha_amino_acid_finder.py <<EOL
+
+#!/usr/bin/env python
+
+import sys
+from Bio import SeqIO
+from sys import argv
+
+contigs = []
+fasta_file = sys.argv[1]
+
+record = SeqIO.read(fasta_file, "fasta")
+table = 1
+min_pro_len = 100
+
+for strand, nuc in [(+1, record.seq)]:
+	for frame in range(3):
+		length = 3 * ((len(record)-frame) // 3) #Multiple of three
+		for pro in nuc[frame:frame+length].translate(table).split("*"):
+			if len(pro) >= min_pro_len:
+				print (pro[320:380])
+
+EOL
+
+grep -A 1 "^>Seq4" ${root}/${sampleName}-submissionfile.fasta > segment4-HA.fasta
+
+chmod 755 ./ha_amino_acid_finder.py
+
+./ha_amino_acid_finder.py "segment4-HA.fasta" > ha_amino_acid_finder_output.txt
+
+}
+
+###########################
 echo "Making IRD for: $sampleName"
 
 # Create "here-document"
