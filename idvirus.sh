@@ -1671,6 +1671,12 @@ chmod 755 ./ha_amino_acid_finder.py
 
 ha_amino_acid_finder
 
+# add to report
+echo "\begin{flushleft}" >> $mytex
+echo "\textbf{`cat ha_amino_acid_finder_output.txt`}\par\medskip" >> $mytex
+echo "\end{flushleft}" >> $mytex
+
+
 ###########################
 echo "Making IRD for: $sampleName"
 
