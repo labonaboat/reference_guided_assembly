@@ -1659,11 +1659,12 @@ for strand, nuc in [(+1, record.seq)]:
 		length = 3 * ((len(record)-frame) // 3) #Multiple of three
 		for pro in nuc[frame:frame+length].translate(table).split("*"):
 			if len(pro) >= min_pro_len:
-				print (pro[320:380])
+				print (pro[320:375])
 
 EOL
 
-grep -A 1 "^>Seq4" ${root}/${sampleName}-submissionfile.fasta > segment4-HA.fasta
+# find and isolate segment 4 to determine HA cleavage site
+egrep -i -A 1 "^>Seq4|^>seq.*4.*ha|^>seg.*4.*ha" ${root}/${sampleName}-submissionfile.fasta > segment4-HA.fasta
 
 chmod 755 ./ha_amino_acid_finder.py
 
@@ -1676,10 +1677,11 @@ ha_amino_acid_finder
 linecount=$(wc -l ha_amino_acid_finder_output.txt | awk '{print $1}') 
 
 if [[ $linecount > 3 ]]; then
-    cleavage="unable to determine cleavage site"
+	# when multiple HA segments are made provide message
+    	cleavage="unable to determine cleavage site"
 else
-    # pipe shows cleavage site
-    cleavage=$(sed 's/GLFGAIA/\\color{red}\\textbf{ | }\\color{black}GLFGAIA/' ha_amino_acid_finder_output.txt | sed 's/GIFGAIA/\\color{red}\\textbf{ | }\\color{black}GIFGAIA/' | tr -d \n)
+    	# pipe shows cleavage site and highlighted read
+    	cleavage=$(sed 's/GLFGAIA/\\color{red}\\textbf{ | }\\color{black}GLFGAIA/' ha_amino_acid_finder_output.txt | sed 's/GIFGAIA/\\color{red}\\textbf{ | }\\color{black}GIFGAIA/' | tr -d \n)
 fi
     
     # add to report
