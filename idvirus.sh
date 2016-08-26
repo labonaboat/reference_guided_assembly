@@ -1671,9 +1671,12 @@ chmod 755 ./ha_amino_acid_finder.py
 
 ha_amino_acid_finder
 
+# pipe shows cleavage site
+cleavage=`sed 's/GLFGAIA/|GLFGAIA/' ha_amino_acid_finder_output.txt | sed 's/GIFGAIA/>|<GIFGAIA/' | tr -d \n`
 # add to report
 echo "\begin{flushleft}" >> $mytex
-echo "\textbf{`cat ha_amino_acid_finder_output.txt`}\par\medskip" >> $mytex
+echo "\textbf{HA cleavage site}\par\medskip" >> $mytex
+echo "\textbf{$cleavage}\par\medskip" >> $mytex
 echo "\end{flushleft}" >> $mytex
 
 
@@ -1706,7 +1709,7 @@ rm param.txt
 cd $root
 cp ${sampleName}.assembly_graph.pdf graphic.pdf
 
-echo "\vspace{5mm}" >> $mytex
+#echo "\vspace{5mm}" >> $mytex
 echo "" >> $mytex
 
 echo "\begin{figure}[H]" >> $mytex
