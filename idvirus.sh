@@ -330,6 +330,8 @@ cat << EOL > $mytex
 \usepackage[table]{xcolor}
 \usepackage{floatrow}
 \usepackage{float}
+\usepackage[T1]{fontenc}
+\usepackage{color}
 \floatsetup[table]{capposition=top}
 \usepackage{caption}
 \captionsetup{labelformat=empty,justification=justified,singlelinecheck=false}
@@ -1671,14 +1673,24 @@ chmod 755 ./ha_amino_acid_finder.py
 
 ha_amino_acid_finder
 
-# pipe shows cleavage site
-cleavage=`sed 's/GLFGAIA/|GLFGAIA/' ha_amino_acid_finder_output.txt | sed 's/GIFGAIA/>|<GIFGAIA/' | tr -d \n`
-# add to report
-echo "\begin{flushleft}" >> $mytex
-echo "\textbf{HA cleavage site}\par\medskip" >> $mytex
-echo "\textbf{$cleavage}\par\medskip" >> $mytex
-echo "\end{flushleft}" >> $mytex
+linecount=$(wc -l ha_amino_acid_finder_output.txt | awk '{print $1}') 
 
+if [[ $linecount > 3 ]]; then
+    cleavage="unable to determine cleavage site"
+else
+    # pipe shows cleavage site
+    cleavage=$(sed 's/GLFGAIA/\\color{red}\\textbf{ | }\\color{black}GLFGAIA/' ha_amino_acid_finder_output.txt | sed 's/GIFGAIA/\\color{red}\\textbf{ | }\\color{black}GIFGAIA/' | tr -d \n)
+fi
+    
+    # add to report
+    echo "\begin{table}[H]" >> ${mytex}
+    echo "\begin{tabular}{ l }" >> ${mytex}
+    echo "\hline" >> ${mytex}
+    echo "${cleavage} \\\\ " >> ${mytex}
+    echo "\hline" >> ${mytex}
+    echo "\end{tabular}" >> ${mytex}
+    echo "\caption{\textbf{HA cleavage site}}" >> ${mytex}
+    echo "\end{table}" >> ${mytex}
 
 ###########################
 echo "Making IRD for: $sampleName"
