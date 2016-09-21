@@ -89,9 +89,6 @@ rm ./excelcolumnextract.py
 
 }
 
-#####################################################
-
-
 #######################################################################################
 #|||||||||||||||||||||||||||||| EnvironmentControls ||||||||||||||||||||||||||||||||||
 #######################################################################################
@@ -243,6 +240,20 @@ find . -maxdepth 1 -name "*gz" -type f -print0 | xargs -0 -n 1 -P $NR_CPUS gunzi
 
 #Set sample name- sample name is the name of the fastq files minus any identifying information from the sequencer
 sampleName=`ls *.fastq | head -1 | sed 's/_.*//' | sed 's/\..*//'`
+
+#####################
+# Add denovo assembly
+if [[ $flu == yes ]]; then
+    mkdir ${root}/${sampleName}_denovo
+    cp ${root}/originalreads/* ${root}/${sampleName}_denovo
+    cd ${root}/${sampleName}_denovo
+    kraken_flu_gene_parser_assembler.pl 
+    cp ${root}/${sampleName}_denovo/scaffolds_from_isolated_reads/notables/*_nometa.fasta ${root}    
+    cp ${root}/${sampleName}_denovo/scaffolds_from_isolated_reads/notables/*submissionfile.fasta ${root}
+    rm -r ${root}/${sampleName}_denovo
+    cd ${root}
+fi
+####################
 
 #Establish Read Files
 if [ -f *R2* ]; then
