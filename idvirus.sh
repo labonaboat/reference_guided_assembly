@@ -103,7 +103,7 @@ if [[ $1 == flu ]]; then
     bioinfoVCF="/bioinfo11/MKillian/Analysis/results/influenza/newfiles"
     echo "idvirus.sh ran targeting $1"
     echo "Script idvirus.sh ran targeting $1"
-    email_list="tod.p.stuber@usda.gov Mary.L.Killian@aphis.usda.gov mia.kim.torchetti@aphis.usda.gov Suelee.Robbe-Austerman@aphis.usda.gov" 
+    email_list="tod.p.stuber@usda.gov Jessica.A.Hicks@aphis.usda.gov Mary.L.Killian@aphis.usda.gov mia.kim.torchetti@aphis.usda.gov Suelee.Robbe-Austerman@aphis.usda.gov" 
 
 elif [[ $1 == secd ]]; then
     genotypingcodes="NEED TO SET"
