@@ -250,6 +250,8 @@ if [[ $flu == yes ]]; then
     kraken_flu_gene_parser_assembler.pl 
     cp ${root}/${sampleName}_denovo/scaffolds_from_isolated_reads/notables/*_nometa.fasta ${root}    
     cp ${root}/${sampleName}_denovo/scaffolds_from_isolated_reads/notables/*submissionfile.fasta ${root}
+    cd ${root}/${sampleName}_denovo
+    mkdir ${root}/individual_de_novo_segments; for i in scaffolds_from_isolated_reads/notables/*notable.fasta; do name=`basename $i`; cp $i ${root}/individual_de_novo_segments/${name%_notable.fasta}_denovo.fasta; done
     rm -r ${root}/${sampleName}_denovo
     cd ${root}
 fi
