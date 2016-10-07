@@ -252,7 +252,7 @@ if [[ $flu == yes ]]; then
     cp ${root}/${sampleName}_denovo/scaffolds_from_isolated_reads/notables/*submissionfile.fasta ${root}
     cd ${root}/${sampleName}_denovo
     mkdir ${root}/individual_de_novo_segments; for i in scaffolds_from_isolated_reads/notables/*notable.fasta; do name=`basename $i`; cp $i ${root}/individual_de_novo_segments/${name%_notable.fasta}_denovo.fasta; done
-    rm -r ${root}/${sampleName}_denovo
+    #rm -r ${root}/${sampleName}_denovo
     cd ${root}
 fi
 ####################
@@ -1640,6 +1640,8 @@ EOL
     fi
 pwd
 
+sed -i "s/Need_to_update/$subtype/" ${root}/${sampleName}_denovo-submissionfile.fasta
+
 #rm *temp
 rm *information
 rm param.txt
@@ -1827,6 +1829,10 @@ fi
 
 if [ -e ${root}/kraken/${sampleName}-kraken_report.txt ]; then
         ls ${root}/kraken/${sampleName}-kraken_report.txt >> emailfiles
+fi
+
+if [ -e ${root}/${sampleName}_denovo-submissionfile.fasta ]; then
+        ls ${root}/${sampleName}_denovo-submissionfile.fasta >> emailfiles
 fi
 
 if [[ $sampleType == "paired" ]]; then
