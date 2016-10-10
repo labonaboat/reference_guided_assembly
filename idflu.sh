@@ -226,15 +226,57 @@ if [[ $sampleType == "paired" ]]; then
     mkdir ${root}/isolated_reads/${header_name}
     mv ${header_name}_R1.fastq ${header_name}_R2.fastq ${root}/isolated_reads/${header_name}
     pigz ${root}/isolated_reads/${header_name}/*fastq
+    r1i="${root}/isolated_reads/${header_name}_R1.fastq.gz"
+    r2i="${root}/isolated_reads/${header_name}_R2.fastq.gz"
 
+    spades.py -t 32 -k 127 --careful -1 $r1i -2 $r2i -o ./
+
+    cp scaffolds.fasta ${header_name}_scaffolds.fasta
+    ref="${root}/isolated_reads/${header_name}_scaffolds.fasta"
+
+
+    r=`echo $ref | sed 's/[._].*//'`
+    n=`echo $r2i | sed 's/[._].*//'`
+
+    echo "n: $n"
+    echo "r: $r"
+    echo "r1i: $r1i"
+    echo "r2i: $r2i"
+    echo "ref: $ref"
+pause
+
+    samtools faidx $ref
+    java -Xmx4g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${r}.dict
+    bwa index $ref
+    bwa mem -M -t 16 -R @RG"\t"ID:"$n""\t"PL:ILLUMINA"\t"PU:"$n"_RG1_UNIT1"\t"LB:"$n"_LIB1"\t"SM:"$n" $ref $r1i $r2i > $n.sam
+    samtools view -bh -T $ref $n.sam > $n.all.bam
+    samtools view -h -F4 $n.all.bam > $n.mappedReads.sam
+    samtools view -bh -F4 -T $ref  $n.mappedReads.sam > $n.raw.bam
+    samtools sort $n.raw.bam -o $n.sorted.bam
+    samtools index $n.sorted.bam
+    java -Xmx4g -jar  ${picard} MarkDuplicates INPUT=$n.sorted.bam OUTPUT=$n.dup.bam METRICS_FILE=$n.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+    samtools index $n.dup.bam
+
+    java -Xmx4g -jar ${gatk} -R $ref -T HaplotypeCaller -I $n.dup.bam -o $n.hapreadyAll.vcf -dontUseSoftClippedBases -allowNonUniqueKmersInRef
+    grep '^#' $n.hapreadyAll.vcf > header
+    grep -v '^#' $n.hapreadyAll.vcf | awk 'BEGIN{FS="\t"}{if ($6 > 750) print $0}' > body
+    mv $n.hapreadyAll.vcf $n.original_hapreadyAll.vcf
+    cat header body > $n.hapreadyAll.vcf
+
+    java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.readreference.fasta -V $n.hapreadyAll.vcf
+
+    mv ${n}.readreference.fasta ../
+    cd ..
+    mv scaffolds.fasta original_scaffolds.fasta
+    mv ${n}.readreference.fasta scaffolds.fasta
 else
     echo "get the single read setup at line $LINENO"
 fi
 
 }
 
-for each_header in *headers.txt; do 
-    parse_reads & 
+for each_header in *headers.txt; do
+    parse_reads &
 done
 wait
 cd ${root}/isolated_reads
