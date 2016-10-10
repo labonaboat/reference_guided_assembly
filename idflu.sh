@@ -6,14 +6,16 @@ root=`pwd`
 genotypingcodes="/scratch/report/flu_genotyping_codes.txt"
 krakenDatabase="/home/shared/databases/kraken/flu_jhu/fludb_20150820_with_hosts"
 sampleName=`ls *.fastq* | head -1 | sed 's/[_.].*//'`
-prinf "\n Working on $sampleName\n\n"
+printf "\n Working on $sampleName\n\n"
 
 # NCBI downloaded reference location
 mydb="/data/mydb"
 #Delete files in local database that may be empty
 dzdo chmod 755 * ${mydb}/*
 for i in ${mydb}/*; do
-    if [ -s ! $i ]; then
+    if [ -s $i ]; then
+        echo "" > /dev/null
+    else
         echo "file $i is empty and has been deleted"
         rm -f $i
     fi
@@ -22,9 +24,9 @@ done
 #Establish Read Files
 if [ -f *R2* ]; then
     export sampleType="paired"
-    r1=${root}/*_R1*
+    r1=${root}/`ls *_R1*`
     echo "R1 reads: $r1"
-    r2=${root}/*_R2*
+    r2=${root}/`ls *_R2*`
     echo "R2 reads: $r2"
     mkdir original_reads
     cp $r1 $r2 original_reads
@@ -47,17 +49,17 @@ if [ -f *R2* ]; then
     ktrim=r k=23 mink=11 hdist=1 \
     qtrim=lr trimq=5 \
     minlen=36 \
-    out1=${strain}_Trimmed_R1.fastq.gz \
-    out2=${strain}_Trimmed_R2.fastq.gz \
+    out1=${root}/${sampleName}_Trimmed_R1.fastq.gz \
+    out2=${root}/${sampleName}_Trimmed_R2.fastq.gz \
     stats=trim_stats.txt \
     qchist=qc_by_base.txt \
     threads=auto \
     showspeed=f
 
-    r1t="${root}/${strain}_Trimmed_R1.fastq.gz"
-    echo "Forward Reads to be used after trimmed: $r1"
-    r1t="${root}/${strain}_Trimmed_R2.fastq.gz"
-    echo "Reverse Reads to be used after trimmed:: $r2"
+    r1t="${root}/${sampleName}_Trimmed_R1.fastq.gz"
+    echo "R1 reads to be used after trimmed: $r1t"
+    r2t="${root}/${sampleName}_Trimmed_R2.fastq.gz"
+    echo "R2 reads to be used after trimmed:: $r2t"
 
 else
     echo "Just a single read present"
@@ -90,13 +92,12 @@ echo "------> jhu Building Krona Graph..."
 kraken2krona.sh -i $sampleName-output.txt -k ${krakenDatabase} -o $sampleName-jhu-output.txt -r $sampleName-jhu-Krona_id_graphic.html
 
 mkdir ${root}/kraken
-mv $sampleName-output.txt $sampleName-report.txt $sampleName-jhu-Krona_id_graphic.html
-${root}/kraken
+mv $sampleName-output.txt $sampleName-report.txt $sampleName-jhu-Krona_id_graphic.html ${root}/kraken
 
 # Set variables and paths
-koutput=${root}/kraken/*-output.txt
-kreport=${root}/kraken/*-report.txt
-khtml=${root}/kraken/*.html
+koutput=${root}/kraken/$sampleName-output.txt
+kreport=${root}/kraken/$sampleName-report.txt
+khtml=${root}/kraken/$sampleName-jhu-Krona_id_graphic.html
 echo "kraken output: $koutput"
 echo "kraken report: $kreport"
 echo "krona html: $khtml"
@@ -104,8 +105,8 @@ echo "krona html: $khtml"
 function parse_kraken_report() {
 
 echo "perl here-doc to parse report"
-cat >${root}/parse_kraken_report.pl <<EOL
-#!/usr/bin/env
+cat >${root}/parse_kraken_report.pl <<'EOL'
+#!/usr/bin/env perl
 
 my $kraken_report = $ARGV[0];
 open(my $kraken_report_handle, '<', $kraken_report) or die "Can't open $kraken_report";
@@ -207,8 +208,39 @@ ${root}/parse_kraken_report.pl $kreport $koutput
 
 }
 
+parse_kraken_report
+
+mkdir header_files
+mv *headers.txt header_files
+cd header_files
+
+function parse_reads() {
+header_name=${each_header%_headers.txt}
+ 
+if [[ $sampleType == "paired" ]]; then
+    echo "Get the R1 reads for $header_name"
+    fgrep --no-group-separator -A3 -h -f ${each_header} ${r1t%.gz} > ${header_name}_R1.fastq
+    echo "Get the R2 reads for $header_name"
+    fgrep --no-group-separator -A3 -h -f ${each_header} ${r2t%.gz} > ${header_name}_R2.fastq 
+    mkdir -p ${root}/isolated_reads
+    mkdir ${root}/isolated_reads/${header_name}
+    mv ${header_name}_R1.fastq ${header_name}_R2.fastq ${root}/isolated_reads/${header_name}
+    pigz ${root}/isolated_reads/${header_name}/*fastq
+
+else
+    echo "get the single read setup at line $LINENO"
+fi
+
+}
+
+for each_header in *headers.txt; do 
+    parse_reads & 
+done
+wait
+cd ${root}/isolated_reads
+
 pwd
 date
-print "\nDONE\n\n";
+printf "\nDONE\n\n";
 # 2016-10-10 stuber
 
