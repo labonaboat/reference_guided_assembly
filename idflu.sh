@@ -102,6 +102,60 @@ echo "kraken output: $koutput"
 echo "kraken report: $kreport"
 echo "krona html: $khtml"
 
+########################
+
+cat >${root}/pick_fasta.pl <<'EOL'
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Bio::Seq;
+use Bio::SeqIO;
+
+my $in_file = $ARGV[0];
+if (not defined $in_file) {
+    die "ERROR!!! --> An input file was not provided.  Provide FASTA!"
+}
+
+print "my in_file: $in_file\n";
+(my $file_name = $in_file) =~ s/_scaffolds//;
+print "File name: $file_name\n";
+
+my $seqin_obj = Bio::SeqIO->new(-file => $in_file, -format => 'fasta');
+my $seqout_obj = Bio::SeqIO->new(-file => ">$file_name", -fomat => 'fasta');
+
+# print out first (and largest) seq obj
+# isolate just one contig if multiple
+my $inseq = $seqin_obj->next_seq;
+$seqout_obj->write_seq($inseq);
+
+`blastn -query $file_name -out strand.$file_name -db /data/BLAST/db/nt -max_target_seqs 1 -num_threads 16 -outfmt "6 sstrand"`;
+
+# Put sequence into correct orientation
+open(my $sh, '<', "strand.$file_name") or die "Can't open strand.$file_name";
+my $first_line = <$sh>;
+chomp $first_line;
+my $seqbackin_obj = Bio::SeqIO->new(-file => "$file_name", -format => 'fasta');
+print "This is the first line $first_line\n";
+
+while (my $seq_obj = $seqbackin_obj->next_seq ){
+    my $seqout_correct_orientation_obj = Bio::SeqIO->new(-file => ">$file_name", -fomat => 'fasta');
+    if ($first_line eq "minus"){
+        print "The reverse complement will be used\n";
+        $seqout_correct_orientation_obj->write_seq($seq_obj->revcom);
+    }elsif($first_line eq "plus"){
+        print "Strand orientation is correct\n";
+        $seqout_correct_orientation_obj->write_seq($seq_obj);
+    }else{
+        die "ERROR!!! --> Correct strand orientation not found";
+    }
+}
+EOL
+
+chmod 755 ${root}/pick_fasta.pl
+#######################
+
 function parse_kraken_report() {
 
 echo "perl here-doc to parse report"
@@ -226,24 +280,28 @@ if [[ $sampleType == "paired" ]]; then
     mkdir ${root}/isolated_reads/${header_name}
     mv ${header_name}_R1.fastq ${header_name}_R2.fastq ${root}/isolated_reads/${header_name}
     pigz ${root}/isolated_reads/${header_name}/*fastq
-    r1i="${root}/isolated_reads/${header_name}_R1.fastq.gz"
-    r2i="${root}/isolated_reads/${header_name}_R2.fastq.gz"
+    r1i="${root}/isolated_reads/${header_name}/${header_name}_R1.fastq.gz"
+    r2i="${root}/isolated_reads/${header_name}/${header_name}_R2.fastq.gz"
+    
+    cd ${root}/isolated_reads/${header_name}
+    spades.py -t 32 -k 127 --careful -1 $r1i -2 $r2i -o ${root}/isolated_reads/${header_name}/
 
-    spades.py -t 32 -k 127 --careful -1 $r1i -2 $r2i -o ./
+    cp scaffolds.fasta ${sampleName}_${header_name}_scaffolds.fasta
+    
+    ${root}/pick_fasta.pl ${sampleName}_${header_name}_scaffolds.fasta
+    # update the scaffold file with single contig with correct orientation
+    mv ${sampleName}_${header_name}.fasta ${sampleName}_${header_name}_scaffolds.fasta
 
-    cp scaffolds.fasta ${header_name}_scaffolds.fasta
-    ref="${root}/isolated_reads/${header_name}_scaffolds.fasta"
+    ref="${root}/isolated_reads/${header_name}/${sampleName}_${header_name}_scaffolds.fasta"
 
-
-    r=`echo $ref | sed 's/[._].*//'`
-    n=`echo $r2i | sed 's/[._].*//'`
+    r=`basename $ref | sed 's/\.fasta//'`
+    n="${sampleName}_${header_name}"
 
     echo "n: $n"
     echo "r: $r"
     echo "r1i: $r1i"
     echo "r2i: $r2i"
     echo "ref: $ref"
-pause
 
     samtools faidx $ref
     java -Xmx4g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${r}.dict
@@ -265,10 +323,6 @@ pause
 
     java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.readreference.fasta -V $n.hapreadyAll.vcf
 
-    mv ${n}.readreference.fasta ../
-    cd ..
-    mv scaffolds.fasta original_scaffolds.fasta
-    mv ${n}.readreference.fasta scaffolds.fasta
 else
     echo "get the single read setup at line $LINENO"
 fi
@@ -276,9 +330,11 @@ fi
 }
 
 for each_header in *headers.txt; do
-    parse_reads &
+    cd ${root}/header_files
+    parse_reads #&
 done
 wait
+pause
 cd ${root}/isolated_reads
 
 pwd
