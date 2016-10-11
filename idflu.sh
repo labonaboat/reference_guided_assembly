@@ -2,6 +2,7 @@
 
 alias pause='read -p "$LINENO Enter"'
 root=`pwd`
+pythonGetFasta=`which GetFASTAbyGI.py`
 
 genotypingcodes="/scratch/report/flu_genotyping_codes.txt"
 krakenDatabase="/home/shared/databases/kraken/flu_jhu/fludb_20150820_with_hosts"
@@ -322,7 +323,196 @@ if [[ $sampleType == "paired" ]]; then
     cat header body > $n.hapreadyAll.vcf
 
     java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.readreference.fasta -V $n.hapreadyAll.vcf
+# BLAST1
+pause
+    echo "short BLAST"
+    blastn -query ${n}.readreference.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${n}-blast1.txt -max_target_seqs 1 -outfmt "6 saccver"
+    #rm ${refname}.readreference.fasta
 
+    head -1 ${n}-blast1.txt > ${n}-blast1.txt.temp
+    mv ${n}-blast1.txt.temp ${n}-blast1.txt
+
+    if [ -s ${refname}-readreference-max1-nt-id.txt ]; then
+        echo "Something was found"
+    else
+        echo "No matches" > ERROR-REPORT.txt
+        #exit 1
+    fi
+
+    acc=`head -1 ${n}-blast1.txt | sed 's/\..*//'`
+    writeFile="${acc}.fasta"
+    echo "acc $acc"
+    echo "writeFile $writeFile"
+    python -u "${pythonGetFasta}" $acc $writeFile
+    ls ${mydb} >  ${mydb}/list.txt
+    p=`grep "${acc}" ${mydb}/list.txt`
+
+    if [[ -z "$p" ]]; then
+        echo "Downloading from NCBI"
+        echo "This is the file to write to:  $writeFile"
+        echo "Running python script to grab fasta file"
+        grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+        if [ -s $writeFile ]; then
+            echo "Downloaded from NCBI, Good to continue."
+        else
+            echo "Try downloading again"
+            sleep 20
+            echo "Running python script to grab fasta file"
+            python -u "${pythonGetFasta}" $acc $writeFile
+            grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+            sleep 5
+            if [ ! -s $writeFile ]; then
+                echo "Downloaded from NCBI, Good to continue."
+            else
+                echo "Try downloading again"
+                sleep 120
+                echo "Running python script to grab fasta file"
+                python -u "${pythonGetFasta}" $acc $writeFile
+                grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+                sleep 5
+                if [ ! -s $writeFile ]; then
+                    echo "Downloaded from NCBI, Good to continue."
+                else
+                    echo "Try downloading again"
+                    sleep 320
+                    echo "Running python script to grab fasta file"
+                    python -u "${pythonGetFasta}" $acc $writeFile
+                    grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+                    sleep 5
+                    if [ ! -s $writeFile ]; then
+                        read -p "Fasta file ${acc} failed to download from NCBI, Manually download if desired to proceed.  Line: $LINENO"
+                    fi
+                fi
+            fi
+        fi
+        cp $writeFile ${mydb}
+    else
+        echo "File is local"
+        cp ${mydb}/${p} ./
+        writeFile=${p}
+    fi
+
+    ref="$writeFile"
+    r=`basename $ref | sed 's/\.fasta//'`
+    n="${sampleName}_${header_name}"
+echo "writefile $writeFile"
+pause
+
+    samtools faidx $ref
+    java -Xmx4g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${r}.dict
+    bwa index $ref
+    bwa mem -M -t 16 -R @RG"\t"ID:"$n""\t"PL:ILLUMINA"\t"PU:"$n"_RG1_UNIT1"\t"LB:"$n"_LIB1"\t"SM:"$n" $ref $r1i $r2i > $n.sam
+    samtools view -bh -T $ref $n.sam > $n.all.bam
+    samtools view -h -F4 $n.all.bam > $n.mappedReads.sam
+    samtools view -bh -F4 -T $ref  $n.mappedReads.sam > $n.raw.bam
+    samtools sort $n.raw.bam -o $n.sorted.bam
+    samtools index $n.sorted.bam
+    java -Xmx4g -jar  ${picard} MarkDuplicates INPUT=$n.sorted.bam OUTPUT=$n.dup.bam METRICS_FILE=$n.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+    samtools index $n.dup.bam
+
+    java -Xmx4g -jar ${gatk} -R $ref -T HaplotypeCaller -I $n.dup.bam -o $n.hapreadyAll.vcf -dontUseSoftClippedBases -allowNonUniqueKmersInRef
+    grep '^#' $n.hapreadyAll.vcf > header
+    grep -v '^#' $n.hapreadyAll.vcf | awk 'BEGIN{FS="\t"}{if ($6 > 750) print $0}' > body
+    mv $n.hapreadyAll.vcf $n.original_hapreadyAll.vcf
+    cat header body > $n.hapreadyAll.vcf
+
+    java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.readreference.fasta -V $n.hapreadyAll.vcf
+# BLAST2
+pause
+    echo "short BLAST"
+    blastn -query ${n}.readreference.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${n}-blast1.txt -max_target_seqs 1 -outfmt "6 saccver"
+    #rm ${refname}.readreference.fasta
+
+    head -1 ${n}-blast1.txt > ${n}-blast1.txt.temp
+    mv ${n}-blast1.txt.temp ${n}-blast1.txt
+
+    if [ -s ${refname}-readreference-max1-nt-id.txt ]; then
+        echo "Something was found"
+    else
+        echo "No matches" > ERROR-REPORT.txt
+        #exit 1
+    fi
+
+    acc=`head -1 ${n}-blast1.txt | sed 's/\..*//'`
+    writeFile="${acc}.fasta"
+    echo "acc $acc"
+    echo "writeFile $writeFile"
+    python -u "${pythonGetFasta}" $acc $writeFile
+    ls ${mydb} >  ${mydb}/list.txt
+    p=`grep "${acc}" ${mydb}/list.txt`
+
+    if [[ -z "$p" ]]; then
+        echo "Downloading from NCBI"
+        echo "This is the file to write to:  $writeFile"
+        echo "Running python script to grab fasta file"
+        grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+        if [ -s $writeFile ]; then
+            echo "Downloaded from NCBI, Good to continue."
+        else
+            echo "Try downloading again"
+            sleep 20
+            echo "Running python script to grab fasta file"
+            python -u "${pythonGetFasta}" $acc $writeFile
+            grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+            sleep 5
+            if [ ! -s $writeFile ]; then
+                echo "Downloaded from NCBI, Good to continue."
+            else
+                echo "Try downloading again"
+                sleep 120
+                echo "Running python script to grab fasta file"
+                python -u "${pythonGetFasta}" $acc $writeFile
+                grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+                sleep 5
+                if [ ! -s $writeFile ]; then
+                    echo "Downloaded from NCBI, Good to continue."
+                else
+                    echo "Try downloading again"
+                    sleep 320
+                    echo "Running python script to grab fasta file"
+                    python -u "${pythonGetFasta}" $acc $writeFile
+                    grep -v "Resource temporarily unavailable" $writeFile > $writeFile.temp; mv $writeFile.temp $writeFile
+                    sleep 5
+                    if [ ! -s $writeFile ]; then
+                        read -p "Fasta file ${acc} failed to download from NCBI, Manually download if desired to proceed.  Line: $LINENO"
+                    fi
+                fi
+            fi
+        fi
+        cp $writeFile ${mydb}
+    else
+        echo "File is local"
+        cp ${mydb}/${p} ./
+        writeFile=${p}
+        fi
+
+    ref="$writeFile"
+    r=`basename $ref | sed 's/\.fasta//'`
+    n="${sampleName}_${header_name}"
+echo "writefile $writeFile"
+pause
+
+    samtools faidx $ref
+    java -Xmx4g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${r}.dict
+    bwa index $ref
+    bwa mem -M -t 16 -R @RG"\t"ID:"$n""\t"PL:ILLUMINA"\t"PU:"$n"_RG1_UNIT1"\t"LB:"$n"_LIB1"\t"SM:"$n" $ref $r1i $r2i > $n.sam
+    samtools view -bh -T $ref $n.sam > $n.all.bam
+    samtools view -h -F4 $n.all.bam > $n.mappedReads.sam
+    samtools view -bh -F4 -T $ref  $n.mappedReads.sam > $n.raw.bam
+    samtools sort $n.raw.bam -o $n.sorted.bam
+    samtools index $n.sorted.bam
+    java -Xmx4g -jar  ${picard} MarkDuplicates INPUT=$n.sorted.bam OUTPUT=$n.dup.bam METRICS_FILE=$n.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+    samtools index $n.dup.bam
+
+    java -Xmx4g -jar ${gatk} -R $ref -T HaplotypeCaller -I $n.dup.bam -o $n.hapreadyAll.vcf -dontUseSoftClippedBases -allowNonUniqueKmersInRef
+    grep '^#' $n.hapreadyAll.vcf > header
+    grep -v '^#' $n.hapreadyAll.vcf | awk 'BEGIN{FS="\t"}{if ($6 > 750) print $0}' > body
+    mv $n.hapreadyAll.vcf $n.original_hapreadyAll.vcf
+    cat header body > $n.hapreadyAll.vcf
+
+    java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.final-readreference.fasta -V $n.hapreadyAll.vcf
+
+##################
 else
     echo "get the single read setup at line $LINENO"
 fi
@@ -332,6 +522,7 @@ fi
 for each_header in *headers.txt; do
     cd ${root}/header_files
     parse_reads #&
+    pause
 done
 wait
 pause
