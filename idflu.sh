@@ -1,5 +1,6 @@
 #!/bin/sh
 
+starttime=$(date +%s)
 alias pause='read -p "$LINENO Enter"'
 root=`pwd`
 pythonGetFasta=`which GetFASTAbyGI.py`
@@ -21,6 +22,38 @@ for i in ${mydb}/*; do
         rm -f $i
     fi
 done
+
+function getfluname () {
+
+echo "using xlrd to get flu genotyping codes from MiSeq_Samples.xlsx"
+date
+
+cat >./excelcolumnextract.py <<EOL
+#!/usr/bin/env python
+
+import xlrd
+from sys import argv
+
+script, input = argv
+
+wb = xlrd.open_workbook(input)
+
+sh = wb.sheet_by_index(0)
+for rownum in range(sh.nrows):
+    row = sh.row_values(rownum)
+    # use the join/map/str to output comma delimited list only
+    print (', '.join(map(str, row)))
+
+EOL
+
+chmod 755 ./excelcolumnextract.py
+
+./excelcolumnextract.py /bioinfo11/MKillian/MiSeq\ samples/MiSeq_Samples.xlsx | sed 's/, /,/g' | awk 'BEGIN{FS=","; OFS="\t"} {print $2, $4, $5}' | sed -e 's/[.*:()/\?]/_/g' -e 's/ /_/g' -e 's/_-/_/' -e 's/-_/_/' -e 's/__/_/g' -e 's/[_-]$//' > /scratch/report/flu_genotyping_codes.txt 
+
+rm ./excelcolumnextract.py
+
+}
+getfluname
 
 #Establish Read Files
 if [ -f *R2* ]; then
@@ -324,7 +357,6 @@ if [[ $sampleType == "paired" ]]; then
 
     java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.readreference.fasta -V $n.hapreadyAll.vcf
 # BLAST1
-pause
     echo "short BLAST"
     blastn -query ${n}.readreference.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${n}-blast1.txt -max_target_seqs 1 -outfmt "6 saccver"
     #rm ${refname}.readreference.fasta
@@ -332,7 +364,7 @@ pause
     head -1 ${n}-blast1.txt > ${n}-blast1.txt.temp
     mv ${n}-blast1.txt.temp ${n}-blast1.txt
 
-    if [ -s ${refname}-readreference-max1-nt-id.txt ]; then
+    if [ -s ${n}-blast1.txt ]; then
         echo "Something was found"
     else
         echo "No matches" > ERROR-REPORT.txt
@@ -396,7 +428,6 @@ pause
     r=`basename $ref | sed 's/\.fasta//'`
     n="${sampleName}_${header_name}"
 echo "writefile $writeFile"
-pause
 
     samtools faidx $ref
     java -Xmx4g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${r}.dict
@@ -418,7 +449,6 @@ pause
 
     java -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${n}.readreference.fasta -V $n.hapreadyAll.vcf
 # BLAST2
-pause
     echo "short BLAST"
     blastn -query ${n}.readreference.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${n}-blast1.txt -max_target_seqs 1 -outfmt "6 saccver"
     #rm ${refname}.readreference.fasta
@@ -426,7 +456,7 @@ pause
     head -1 ${n}-blast1.txt > ${n}-blast1.txt.temp
     mv ${n}-blast1.txt.temp ${n}-blast1.txt
 
-    if [ -s ${refname}-readreference-max1-nt-id.txt ]; then
+    if [ -s ${n}-blast1.txt ]; then
         echo "Something was found"
     else
         echo "No matches" > ERROR-REPORT.txt
@@ -489,8 +519,6 @@ pause
     ref="$writeFile"
     r=`basename $ref | sed 's/\.fasta//'`
     n="${sampleName}_${header_name}"
-echo "writefile $writeFile"
-pause
 
     samtools faidx $ref
     java -Xmx4g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${r}.dict
@@ -521,15 +549,95 @@ fi
 
 for each_header in *headers.txt; do
     cd ${root}/header_files
-    parse_reads #&
-    pause
+    parse_reads &
 done
 wait
-pause
-cd ${root}/isolated_reads
+cd ${root}
+mkdir final_assemblies
+find . -name "*final-readreference.fasta" -exec cp {} final_assemblies \;
+cd ${root}/final_assemblies
 
+#####################
+#Format fasta headers for NCBI
+genotypingcodes="/scratch/report/flu_genotyping_codes.txt"
+$subtype="###UPDATE###"
+grep `echo $sampleName | sed 's/_denovo//'` $genotypingcodes | head -1 > ${sampleName}.information
+if [[ -s ${sampleName}.information ]]; then
+    echo "file exists and is greater than zero, continue"
+    #column 1: sample
+    sample=`awk 'BEGIN{FS="\t"}{print $1}' ${sampleName}.information`
+    echo "sample $sample"
+
+    #column 2: species
+    species=`awk 'BEGIN{FS="\t"}{print $2}' ${sampleName}.information`
+    speciesspace=`awk 'BEGIN{FS="\t"}{print $2}' ${sampleName}.information | sed 's/_/ /g'`
+    echo "species $species"
+    echo "speciesspace $speciesspace"
+
+    #column 3: state
+    state=`awk 'BEGIN{FS="\t"}{print $3}' ${sampleName}.information`
+    echo "state $state"
+    statespace=`awk 'BEGIN{FS="\t"}{print $3}' ${sampleName}.information | sed 's/_/ /g'`
+    syear=`echo "$sample" | sed 's/-.*//'`
+    echo "syear $syear"
+    sampleyear=`echo "20${syear}"`
+    echo "sampleyear $sampleyear"
+
+    sed  's/>.*/>Seq1/' *PB2.final-readreference.fasta > ${sampleName}.temp
+    sed  's/>.*/>Seq2/' *PB1.final-readreference.fasta >> ${sampleName}.temp
+    sed  's/>.*/>Seq3/' *PA-PA-X.final-readreference.fasta >> ${sampleName}.temp
+    sed  's/>.*/>Seq4/' *HA.final-readreference.fasta >> ${sampleName}.temp
+    sed  's/>.*/>Seq5/' *NP.final-readreference.fasta >> ${sampleName}.temp
+    sed  's/>.*/>Seq6/' *NA.final-readreference.fasta >> ${sampleName}.temp
+    sed  's/>.*/>Seq7/' *M1-M2.final-readreference.fasta >> ${sampleName}.temp
+    sed  's/>.*/>Seq8/' *NS1-NS2.final-readreference.fasta >> ${sampleName}.temp
+
+# Create "here-document"
+cat >./param.txt <<EOL
+
+>Seq1-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 1, polymerase PB2 (PB2) gene, complete cds.
+>Seq2-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 2, polymerase PB1 (PB1) gene, complete cds.
+>Seq3-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 3, polymerase PA (PA) gene, complete cds.
+>Seq4-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 4, hemagglutinin (HA) gene, complete cds.
+>Seq5-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 5, nucleoprotein (NP) gene, complete cds.
+>Seq6-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 6, neuraminidase (NA) gene, complete cds.
+>Seq7-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 7, matrix protein 2 (M2) and matrix protein 1 (M1) genes, complete cds.
+>Seq8-test [organism=Influenza A virus](A/${species}/${state}/${sample}/${sampleyear}(${subtype})) segment 8, non-structural protein NS1 and non-structural protein NS2 (NS) gene, complete cds.
+
+EOL
+    awk 'NR==FNR{a[$1]=$0;next} ($1 in a){ print a[$1]; next}1' param.txt ${sampleName}.temp > ${sampleName}-test-submissionfile.fasta
+    cp ${sampleName}-test-submissionfile.fasta $root
+else
+    echo "metadata not available"
+    sed  's/>.*/>Seq1-test/' *PB2.final-readreference.fasta > ${sampleName}-test_nometa.fasta
+    sed  's/>.*/>Seq2-test/' *PB1.final-readreference.fasta >> ${sampleName}-test_nometa.fasta
+    sed  's/>.*/>Seq3-test/' *PA-PA-X.final-readreference.fasta >> ${sampleName}-test_nometa.fasta
+    sed  's/>.*/>Seq4-test/' *HA.final-readreference.fasta >> ${sampleName}-test_nometa.fasta
+    sed  's/>.*/>Seq5-test/' *NP.final-readreference.fasta >> ${sampleName}-test_nometa.fasta
+    sed  's/>.*/>Seq6-test/' *NA.final-readreference.fasta >> ${sampleName}-test_nometa.fasta
+    sed  's/>.*/>Seq7-test/' *M1-M2.final-readreference.fasta >> ${sampleName}-test_nometa.fasta
+    sed  's/>.*/>Seq8-test/' *NS1-NS2.final-readreference.fasta >> ${sampleName}-test_nometa.fasta
+
+    cp ${sampleName}-test_nometa.fasta $root
+fi
 pwd
-date
+
+#rm *temp
+rm *information
+rm param.txt
+##################
+cd $root
+rm *fastq
+rm -r final_assemblies
+rm -r header_files
+rm -r isolated_reads
+rm *pl
+rm *txt
+rm *Trimmed*
+
+endtime=`date +%s`
+runtime=$((endtime-starttime))
+printf 'Runtime: %dh:%dm:%ds\n' $(($runtime/3600)) $(($runtime%3600/60)) $(($runtime%60))
 printf "\nDONE\n\n";
 # 2016-10-10 stuber
 

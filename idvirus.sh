@@ -231,9 +231,15 @@ fi
 echo "Core number being used: $NR_CPUS"
 sleep 4
 
-mkdir originalreads
+####################
+if [[ $flu == yes ]]; then
+    idflu.sh
+fi
+####################
+
+#mkdir originalreads
 pigz *fastq
-cp *fastq* originalreads
+#cp *fastq* originalreads
 
 # Unzip files if needed, else put std error to null
 find . -maxdepth 1 -name "*gz" -type f -print0 | xargs -0 -n 1 -P $NR_CPUS gunzip 2> /dev/null
@@ -243,7 +249,7 @@ sampleName=`ls *.fastq | head -1 | sed 's/_.*//' | sed 's/\..*//'`
 
 #####################
 # Add denovo assembly
-if [[ $flu == yes ]]; then
+if [[ $flu == turned_off ]]; then
     mkdir ${root}/${sampleName}_denovo
     cp ${root}/originalreads/* ${root}/${sampleName}_denovo
     cd ${root}/${sampleName}_denovo
@@ -1819,20 +1825,20 @@ if [ -e ${root}/${sampleName}-consensus-blast_alignment-pintail-gyrfalcon.txt ];
 	ls ${root}/${sampleName}-consensus-blast_alignment-pintail-gyrfalcon.txt >> emailfiles
 fi
 
-if [ -e ${root}/$sampleName-jhu-Krona_id_graphic.html ]; then 
-	ls ${root}/$sampleName-jhu-Krona_id_graphic.html >> emailfiles
+if [ -e ${root}/kraken/$sampleName-jhu-Krona_id_graphic.html ]; then 
+	ls ${root}/kraken/$sampleName-jhu-Krona_id_graphic.html >> emailfiles
 fi
 
 if [ -e ${root}/$sampleName-Krona_identification_graphic.html ]; then 
 	ls ${root}/$sampleName-Krona_identification_graphic.html >> emailfiles
 fi
 
-if [ -e ${root}/kraken/${sampleName}-kraken_report.txt ]; then
-        ls ${root}/kraken/${sampleName}-kraken_report.txt >> emailfiles
+if [ -e ${root}/kraken/${sampleName}-report.txt ]; then
+        ls ${root}/kraken/${sampleName}-report.txt >> emailfiles
 fi
 
-if [ -e ${root}/${sampleName}_denovo-submissionfile.fasta ]; then
-        ls ${root}/${sampleName}_denovo-submissionfile.fasta >> emailfiles
+if [ -e ${root}/${sampleName}-test-submissionfile.fasta ]; then
+        ls ${root}/${sampleName}-test-submissionfile.fasta >> emailfiles
 fi
 
 if [[ $sampleType == "paired" ]]; then
@@ -1878,7 +1884,7 @@ rm bestrefs.txt
 rm writelist
 
 #Cleanup
-rm -r `ls | egrep -v "$myfile|${myfile.tex}.pdf|kraken|emailfile|emailfiles|bestrefs.txt|$0|igv_alignment|originalreads|summaryfile|report.pdf|_graphic.html|-consensus-blast_alignment-pintail-gyrfalcon.txt|-submissionfile.fasta|assembly_graph.pdf"`
+rm -r `ls | egrep -v "$myfile|${myfile.tex}.pdf|kraken|emailfile|emailfiles|bestrefs.txt|$0|igv_alignment|originalreads|original_reads|summaryfile|report.pdf|_graphic.html|-consensus-blast_alignment-pintail-gyrfalcon.txt|-submissionfile.fasta|assembly_graph.pdf"`
 
 pwd > ./fastas/filelocation.txt
 
