@@ -232,7 +232,7 @@ echo "Core number being used: $NR_CPUS"
 sleep 4
 
 ####################
-if [[ $flu == yes ]]; then
+if [[ $flu == turned_off ]]; then
     idflu.sh
 fi
 ####################
