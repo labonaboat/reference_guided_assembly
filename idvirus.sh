@@ -83,7 +83,7 @@ EOL
 
 chmod 755 ./excelcolumnextract.py
 
-./excelcolumnextract.py /bioinfo11/MKillian/MiSeq\ samples/MiSeq_Samples.xlsx | sed 's/, /,/g' | awk 'BEGIN{FS=","; OFS="\t"} {print $2, $4, $5}' | sed -e 's/[.*:()/\?]/_/g' -e 's/ /_/g' -e 's/_-/_/' -e 's/-_/_/' -e 's/__/_/g' -e 's/[_-]$//' > /scratch/report/flu_genotyping_codes.txt 
+./excelcolumnextract.py /bioinfo11/MKillian/MiSeq\ samples/MiSeq_Samples.xlsx | sed 's/, /,/g' | awk 'BEGIN{FS=","; OFS="\t"} {print $2, $4, $5, $9, $10}' | sed -e 's/[.*:()/\?]/_/g' -e 's/ /_/g' -e 's/_-/_/' -e 's/-_/_/' -e 's/__/_/g' -e 's/[_-]$//' -e 's/_0$//' > /scratch/report/flu_genotyping_codes.txt 
 
 rm ./excelcolumnextract.py
 
@@ -237,9 +237,9 @@ if [[ $flu == turned_off ]]; then
 fi
 ####################
 
-#mkdir originalreads
+mkdir originalreads
 pigz *fastq
-#cp *fastq* originalreads
+cp *fastq* originalreads
 
 # Unzip files if needed, else put std error to null
 find . -maxdepth 1 -name "*gz" -type f -print0 | xargs -0 -n 1 -P $NR_CPUS gunzip 2> /dev/null
@@ -1610,10 +1610,17 @@ else
         state=`awk 'BEGIN{FS="\t"}{print $3}' ${sampleName}.information`
         echo "state $state"
         statespace=`awk 'BEGIN{FS="\t"}{print $3}' ${sampleName}.information | sed 's/_/ /g'`
-        syear=`echo "$sample" | sed 's/-.*//'`
-        echo "syear $syear"
-        sampleyear=`echo "20${syear}"`
-        echo "sampleyear $sampleyear"
+        #syear=`echo "$sample" | sed 's/-.*//'`
+        #echo "syear $syear"
+        #sampleyear=`echo "20${syear}"`
+        sampleyear=`awk 'BEGIN{FS="\t"}{print $5}' ${sampleName}.information`
+	echo "sampleyear $sampleyear"
+	
+	additional_acc=`grep "$sampleName" /scratch/report/flu_genotyping_codes.txt | awk '{print $4}'`
+	if [ -n $additional_acc -a $additional_acc != $sampleName ]; then 
+		echo "will make an addition"
+		sed -i "s;Identification Report:  ;Identification Report:  $additional_acc/;" $mytex
+	fi
 
         sed 's/>.*seg.*1_.*/>Seq1/' ${sampleName}.consensus.reads.fasta | sed 's/>.*seg.*2_.*/>Seq2/' | sed 's/>.*seg.*3_.*/>Seq3/' | sed 's/>.*seg.*4_.*/>Seq4/' | sed 's/>.*seg.*5_.*/>Seq5/' | sed 's/>.*seg.*6_.*/>Seq6/' | sed 's/>.*seg.*7_.*/>Seq7/' | sed 's/>.*seg.*8_.*/>Seq8/' > ${sampleName}.temp
 
@@ -1621,7 +1628,7 @@ else
 #echo "noyear $noyear"
 
 	sed -i "s:XXXXXSTRAINNAMEXXXXXXX:A/${speciesspace}/${statespace}/${sample}/${sampleyear}:" $mytex
-        	
+	
 	# Create "here-document"
 cat >./param.txt <<EOL
 
