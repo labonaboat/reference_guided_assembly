@@ -592,7 +592,7 @@ java -Xmx2g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.r
 #echo ">${refname}" > ${refname}.readreference.temp; awk ' $8 ~ /^AN=2/ {print $4} ' ${refname}.UG.vcf | tr -d [:space:] >> ${refname}.readreference.temp; echo "" >> ${refname}.readreference.temp; mv ${refname}.readreference.temp ${refname}.readreference.fasta
 
 echo "short BLAST"
-blastn -query ${refname}.readreference.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${refname}-readreference-max1-nt-id.txt -max_target_seqs 1 -outfmt "6 saccver"
+blastn -query ${refname}.readreference.fasta -db /data/BLAST/db/nt -word_size 11 -num_threads 20 -out ${refname}-readreference-max1-nt-id.txt -max_target_seqs 1 -outfmt "6 saccver"
 #rm ${refname}.readreference.fasta
 
 head -1 ${refname}-readreference-max1-nt-id.txt > ${refname}-readreference-max1-nt-id.txt.temp; mv ${refname}-readreference-max1-nt-id.txt.temp ${refname}-readreference-max1-nt-id.txt
@@ -601,7 +601,7 @@ if [ -s ${refname}-readreference-max1-nt-id.txt ]; then
     echo "Something was found"
 else
     echo ">${refname}" > ${refname}.readreference.temp; awk ' $8 ~ /^AN=2/ {print $4} ' ${refname}.UG.vcf | tr -d [:space:] >> ${refname}.readreference.temp; echo "" >> ${refname}.readreference.temp; mv ${refname}.readreference.temp ${refname}.readreference.fasta
-    blastn -query ${refname}.readreference.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${refname}-readreference-max1-nt-id.txt -max_target_seqs 1 -outfmt "6 saccver"
+    blastn -query ${refname}.readreference.fasta -db /data/BLAST/db/nt -word_size 11 -num_threads 20 -out ${refname}-readreference-max1-nt-id.txt -max_target_seqs 1 -outfmt "6 saccver"
     head -1 ${refname}-readreference-max1-nt-id.txt > ${refname}-readreference-max1-nt-id.txt.temp; mv ${refname}-readreference-max1-nt-id.txt.temp ${refname}-readreference-max1-nt-id.txt
     echo "No matches"
     #exit 1
@@ -1081,7 +1081,7 @@ java -Xmx2g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.r
 sed 's/NN//g' < ${refname}.readreference.fasta > ${refname}.readreference.temp; mv ${refname}.readreference.temp ${refname}.readreference.fasta
 
 echo "short BLAST"
-blastn -query ${refname}.readreference.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${refname}-readreference-max1-nt-id.txt -max_target_seqs 1 -outfmt "6 saccver"
+blastn -query ${refname}.readreference.fasta -db /data/BLAST/db/nt -word_size 11 -num_threads 20 -out ${refname}-readreference-max1-nt-id.txt -max_target_seqs 1 -outfmt "6 saccver"
 
 rm *dict
 rm *fasta*
@@ -1474,8 +1474,7 @@ sed 's/NNN//g' ${sampleName}.consensus.reads.fasta > ${sampleName}.consensusnoN.
 pwd
 
 echo "nt BLAST $contigcount contigs..."
-blastn -query ${sampleName}.consensusnoN.reads.fasta -db /data/BLAST/db/nt -num_threads 20 -out ${sampleName}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 qseqid qlen slen pident mismatch evalue bitscore stitle saccver"
-
+blastn -query ${sampleName}.consensusnoN.reads.fasta -db /data/BLAST/db/nt -word_size 11 -num_threads 20 -out ${sampleName}-consensus-max1-nt.txt -max_target_seqs 1 -outfmt "6 qseqid qlen slen pident mismatch evalue bitscore stitle saccver"
 
 echo "" >> ${summaryfile}
 
