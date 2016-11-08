@@ -83,7 +83,7 @@ EOL
 
 chmod 755 ./excelcolumnextract.py
 
-./excelcolumnextract.py /bioinfo11/MKillian/MiSeq\ samples/MiSeq_Samples.xlsx | sed 's/, /,/g' | awk 'BEGIN{FS=","; OFS="\t"} {print $2, $4, $5, $9, $10}' | sed -e 's/[.*:()/\?]/_/g' -e 's/ /_/g' -e 's/_-/_/' -e 's/-_/_/' -e 's/__/_/g' -e 's/[_-]$//' -e 's/_0$//' > /scratch/report/flu_genotyping_codes.txt 
+./excelcolumnextract.py /bioinfo11/MKillian/MiSeq\ samples/MiSeq_Samples.xlsx | sed 's/, /,/g' | awk 'BEGIN{FS=","; OFS="\t"} {print $2, $4, $5, $9, $10}' | sed -e 's/[.*:()/\?,]/_/g' -e 's/ /_/g' -e 's/_-/_/' -e 's/-_/_/' -e 's/__/_/g' -e 's/[_-]$//' -e 's/_0$//' > /scratch/report/flu_genotyping_codes.txt 
 
 rm ./excelcolumnextract.py
 
@@ -1846,8 +1846,8 @@ if [ -e ${root}/$sampleName-Krona_identification_graphic.html ]; then
 	ls ${root}/$sampleName-Krona_identification_graphic.html >> emailfiles
 fi
 
-if [ -e ${root}/kraken/${sampleName}-report.txt ]; then
-        ls ${root}/kraken/${sampleName}-report.txt >> emailfiles
+if [ -e ${root}/kraken/${sampleName}-kraken_report.txt ]; then
+        ls ${root}/kraken/${sampleName}-kraken_report.txt >> emailfiles
 fi
 
 if [ -e ${root}/${sampleName}-test-submissionfile.fasta ]; then
