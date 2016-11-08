@@ -1846,8 +1846,8 @@ if [ -e ${root}/$sampleName-Krona_identification_graphic.html ]; then
 	ls ${root}/$sampleName-Krona_identification_graphic.html >> emailfiles
 fi
 
-if [ -e ${root}/kraken/${sampleName}-report.txt ]; then
-        ls ${root}/kraken/${sampleName}-report.txt >> emailfiles
+if [ -e ${root}/kraken/${sampleName}-kraken_report.txt ]; then
+        ls ${root}/kraken/${sampleName}-kraken_report.txt >> emailfiles
 fi
 
 if [ -e ${root}/${sampleName}-test-submissionfile.fasta ]; then
