@@ -1372,13 +1372,13 @@ cd $root
 
 pwd 
 
-mkdir ${sampleName}-reference_guided_assemblies
+mkdir assemblies
 for i in `find . -name "*reference_guided.fasta"`; do
-    cp $i ${sampleName}-reference_guided_assemblies
+    cp $i assemblies
 done
 pwd
 
-cd ${root}/${sampleName}-reference_guided_assemblies
+cd ${root}/assemblies
 pwd
 
 for i in `ls *fasta | sort -k1,1`; do
@@ -1587,7 +1587,7 @@ fi
 ###########################
 
 mkdir ${root}/share_folder
-cp ${root}/${sampleName}-reference_guided_assemblies/${sampleName}.consensus.reads.fasta ${root}/share_folder
+cp ${root}/assemblies/${sampleName}.consensus.reads.fasta ${root}/share_folder
 
 ############################
 cd ${root}/share_folder
@@ -1596,7 +1596,7 @@ cd ${root}/share_folder
 
 if [[ ${genotypingcodes} == "NEED TO SET" ]]; then
     echo "genotyping codes not given"
-    cp ${root}/${sampleName}-reference_guided_assemblies/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
+    cp ${root}/assemblies/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
     sed -i "s/XXXXXSTRAINNAMEXXXXXXX//" $mytex	
 else
     echo "sampleName: $sampleName"
@@ -1657,7 +1657,7 @@ EOL
 	sed -i "s/XXXXXSTRAINNAMEXXXXXXX//" $mytex
 	sed -i "s/XXXXXHNTYPEXXXXXXX/$argUsed/" $mytex
         echo "metadata not available"
-        cp ${root}/${sampleName}-reference_guided_assemblies/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
+        cp ${root}/assemblies/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
     fi
 pwd
 
@@ -1824,7 +1824,7 @@ mv *report.txt kraken
 cp $0 ${root}
 echo "******* $LINENO, $PWD"
 fileName=`basename $0`
-cp ${sampleName}-reference_guided_assemblies/${sampleName}-consensus-blast_alignment-pintail-gyrfalcon.txt ${root}
+cp assemblies/${sampleName}-consensus-blast_alignment-pintail-gyrfalcon.txt ${root}
 
 #enscript ${summaryfile} -B -j -r -f "Courier5" -o - | ps2pdf - ${sampleName}-report.pdf
 
@@ -1845,7 +1845,7 @@ if [ -e ${root}/kraken/$sampleName-jhu-Krona_id_graphic.html ]; then
 fi
 
 if [ -e ${root}/$sampleName-Krona_identification_graphic.html ]; then 
-	ls ${root}/$sampleName-Krona_identification_graphic.html >> emailfiles
+	ls ${root}/$ampleName*_graphic.html >> emailfiles
 fi
 
 if [ -e ${root}/kraken/${sampleName}-kraken_report.txt ]; then
@@ -1897,9 +1897,34 @@ rm ${sampleName}.tex.filestats
 rm allsamplecoveragefile
 rm bestrefs.txt
 rm writelist
+rm ${root}/assemblies/*consensus*
+
+N_count=`grep -o "N" ${root}/assemblies/*fasta | wc -l`
+assembly_number=`ls ${root}/assemblies/*fasta | wc -l`
+echo "N_count: $N_count"
+
+if [[ $flu == yes ]]; then
+	if [[ $N_count -lt 1000 ]] && [[ $assembly_number -eq 8 ]]; then 
+		echo "< 1000 N's in ref assembled files, and 8 fastas present"
+	else
+		echo "run script idflu.sh"
+		mkdir "de_novo_flu_id"
+		cd de_novo_flu_id
+		cp ../originalreads/*gz ./
+		kraken_flu_gene_parser_assembler.pl
+		wait
+		cd ${root}
+	fi
+fi
 
 #Cleanup
 rm -r `ls | egrep -v "$myfile|${myfile.tex}.pdf|kraken|emailfile|emailfiles|bestrefs.txt|$0|alignment|originalreads|original_reads|summaryfile|report.pdf|_graphic.html|-consensus-blast_alignment-pintail-gyrfalcon.txt|-submissionfile.fasta|assembly_graph.pdf"`
+
+rm ${root}/*tex.acstats
+rm ${root}/*ac1count
+rm ${root}/graphic.pdf
+rm -r ${root}/segment*_*/
+rm -r share_folder
 
 pwd > ./fastas/filelocation.txt
 
@@ -1920,14 +1945,14 @@ else
 	if [ "$mflag" ]; then
     		email_list="tod.p.stuber@usda.gov"
     		cat ${emailbody} | mutt -s "Sample: ${sampleName}, $subtype Reference_Set: $argUsed" -a `cat emailfiles` -- $email_list
-    		rm emailfiles
+    		rm emailfile*
 	else
     		echo "" >> ${emailbody}
     		echo "Files copied to: ${bioinfoVCF}" >> ${emailbody}		
     		cat ${emailbody} | mutt -s "Sample: ${sampleName}, $subtype Reference_Set: $argUsed" -a `cat emailfiles` -- $email_list
 
     		rm ${emailbody}
-    		rm emailfiles
+    		rm emailfile*
     		echo "Copying to ${bioinfoVCF}"
     		cp -r $PWD ${bioinfoVCF} &
 	fi
