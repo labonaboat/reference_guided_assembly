@@ -1393,10 +1393,12 @@ pwd
 
 assemblyfolder=`pwd`
 
-mkdir ${root}/igv_alignment
-cp ${sampleName}.consensus.reads.fasta ${root}/igv_alignment
-cd ${root}/igv_alignment
+mkdir ${root}/alignment
+cp ${sampleName}.consensus.reads.fasta ${root}/alignment
+cd ${root}/alignment
 
+forReads=${root}/${forReads}
+revReads=${root}/${revReads}
 echo "forward read: $forReads"
 echo "reverse read: $revReads"
 
@@ -1897,7 +1899,7 @@ rm bestrefs.txt
 rm writelist
 
 #Cleanup
-rm -r `ls | egrep -v "$myfile|${myfile.tex}.pdf|kraken|emailfile|emailfiles|bestrefs.txt|$0|igv_alignment|originalreads|original_reads|summaryfile|report.pdf|_graphic.html|-consensus-blast_alignment-pintail-gyrfalcon.txt|-submissionfile.fasta|assembly_graph.pdf"`
+rm -r `ls | egrep -v "$myfile|${myfile.tex}.pdf|kraken|emailfile|emailfiles|bestrefs.txt|$0|alignment|originalreads|original_reads|summaryfile|report.pdf|_graphic.html|-consensus-blast_alignment-pintail-gyrfalcon.txt|-submissionfile.fasta|assembly_graph.pdf"`
 
 pwd > ./fastas/filelocation.txt
 
