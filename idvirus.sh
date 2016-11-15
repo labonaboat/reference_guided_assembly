@@ -1372,13 +1372,13 @@ cd $root
 
 pwd 
 
-mkdir assemblies
+mkdir assemblies_refguided
 for i in `find . -name "*reference_guided.fasta"`; do
-    cp $i assemblies
+    cp $i assemblies_refguided
 done
 pwd
 
-cd ${root}/assemblies
+cd ${root}/assemblies_refguided
 pwd
 
 for i in `ls *fasta | sort -k1,1`; do
@@ -1587,7 +1587,7 @@ fi
 ###########################
 
 mkdir ${root}/share_folder
-cp ${root}/assemblies/${sampleName}.consensus.reads.fasta ${root}/share_folder
+cp ${root}/assemblies_refguided/${sampleName}.consensus.reads.fasta ${root}/share_folder
 
 ############################
 cd ${root}/share_folder
@@ -1596,7 +1596,7 @@ cd ${root}/share_folder
 
 if [[ ${genotypingcodes} == "NEED TO SET" ]]; then
     echo "genotyping codes not given"
-    cp ${root}/assemblies/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
+    cp ${root}/assemblies_refguided/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
     sed -i "s/XXXXXSTRAINNAMEXXXXXXX//" $mytex	
 else
     echo "sampleName: $sampleName"
@@ -1657,7 +1657,7 @@ EOL
 	sed -i "s/XXXXXSTRAINNAMEXXXXXXX//" $mytex
 	sed -i "s/XXXXXHNTYPEXXXXXXX/$argUsed/" $mytex
         echo "metadata not available"
-        cp ${root}/assemblies/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
+        cp ${root}/assemblies_refguided/${sampleName}.consensus.reads.fasta ${root}/${sampleName}-submissionfile.fasta
     fi
 pwd
 
@@ -1824,7 +1824,7 @@ mv *report.txt kraken
 cp $0 ${root}
 echo "******* $LINENO, $PWD"
 fileName=`basename $0`
-cp assemblies/${sampleName}-consensus-blast_alignment-pintail-gyrfalcon.txt ${root}
+cp assemblies_refguided/${sampleName}-consensus-blast_alignment-pintail-gyrfalcon.txt ${root}
 
 #enscript ${summaryfile} -B -j -r -f "Courier5" -o - | ps2pdf - ${sampleName}-report.pdf
 
@@ -1897,10 +1897,10 @@ rm ${sampleName}.tex.filestats
 rm allsamplecoveragefile
 rm bestrefs.txt
 rm writelist
-rm ${root}/assemblies/*consensus*
+rm ${root}/assemblies_refguided/*consensus*
 
-N_count=`grep -o "N" ${root}/assemblies/*fasta | wc -l`
-assembly_number=`ls ${root}/assemblies/*fasta | wc -l`
+N_count=`grep -o "N" ${root}/assemblies_refguided/*fasta | wc -l`
+assembly_number=`ls ${root}/assemblies_refguided/*fasta | wc -l`
 echo "N_count: $N_count"
 
 if [[ $flu == yes ]]; then
