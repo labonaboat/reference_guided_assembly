@@ -1605,7 +1605,7 @@ else
     if [[ -s ${sampleName}.information ]]; then
         echo "file exists and is greater than zero, continue"
         #column 1: sample
-        sample=`awk 'BEGIN{FS="\t"}{print $1}' ${sampleName}.information`
+	sample=`awk 'BEGIN{FS="\t"}{print $1}' ${sampleName}.information`
         echo "sample $sample"
 
         #column 2: species
@@ -1624,10 +1624,14 @@ else
         sampleyear=`awk 'BEGIN{FS="\t"}{print $5}' ${sampleName}.information`
 	echo "sampleyear $sampleyear"
 	
-	additional_acc=`grep "$sampleName" /scratch/report/flu_genotyping_codes.txt | awk '{print $4}'`
-	if [ -n $additional_acc -a $additional_acc != $sampleName ]; then 
+	barcode=`grep "$sampleName" /scratch/report/flu_genotyping_codes.txt | awk '{print $4}'`
+	if [ -n $barcode -a $sample != $sampleName ]; then 
+	#if [ -n $barcode ] ; then
 		echo "will make an addition"
-		sed -i "s;Identification Report:  ;Identification Report:  $additional_acc/;" $mytex
+		sed -i "s;Identification Report:  ;Identification Report:  $sample/;" $mytex
+		sample=${barcode}
+	elif [ -n $barcode -a $sample == $sampleName ]; then
+		sample=${barcode}
 	fi
 
         sed 's/>.*seg.*1_.*/>Seq1/' ${sampleName}.consensus.reads.fasta | sed 's/>.*seg.*2_.*/>Seq2/' | sed 's/>.*seg.*3_.*/>Seq3/' | sed 's/>.*seg.*4_.*/>Seq4/' | sed 's/>.*seg.*5_.*/>Seq5/' | sed 's/>.*seg.*6_.*/>Seq6/' | sed 's/>.*seg.*7_.*/>Seq7/' | sed 's/>.*seg.*8_.*/>Seq8/' > ${sampleName}.temp
