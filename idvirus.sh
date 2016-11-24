@@ -1605,7 +1605,7 @@ else
     if [[ -s ${sampleName}.information ]]; then
         echo "file exists and is greater than zero, continue"
         #column 1: sample
-	sample=`awk 'BEGIN{FS="\t"}{print $1}' ${sampleName}.information`
+	sample=`awk 'BEGIN{FS="\t"}{print $1}' ${sampleName}.information | sed 's/ //g'`
         echo "sample $sample"
 
         #column 2: species
@@ -1624,7 +1624,7 @@ else
         sampleyear=`awk 'BEGIN{FS="\t"}{print $5}' ${sampleName}.information`
 	echo "sampleyear $sampleyear"
 	
-	barcode=`grep "$sampleName" /scratch/report/flu_genotyping_codes.txt | awk '{print $4}'`
+	barcode=`grep "$sampleName" /scratch/report/flu_genotyping_codes.txt | awk '{print $4}' | sed 's/ //g'`
 	if [ -n $barcode -a $sample != $sampleName ]; then 
 	#if [ -n $barcode ] ; then
 		echo "will make an addition"
