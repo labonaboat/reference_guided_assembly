@@ -83,7 +83,7 @@ EOL
 
 chmod 755 ./excelcolumnextract.py
 
-./excelcolumnextract.py /bioinfo11/MKillian/MiSeq\ samples/MiSeq_Samples.xlsx | sed 's/, /,/g' | awk 'BEGIN{FS=","; OFS="\t"} {print $2, $4, $5, $9, $10}' | sed -e 's/[.*:()/\?,]/_/g' -e 's/ /_/g' -e 's/_-/_/' -e 's/-_/_/' -e 's/__/_/g' -e 's/[_-]$//' -e 's/_0$//' > /scratch/report/flu_genotyping_codes.txt 
+./excelcolumnextract.py /bioinfo11/MKillian/MiSeq\ samples/MiSeq_Samples.xlsx | sed 's/, /,/g' | awk 'BEGIN{FS=","; OFS="\t"} {print $2, $4, $5, $9, $10, $11}' | sed -e 's/[.*:()/\?,]/_/g' -e 's/ /_/g' -e 's/_-/_/' -e 's/-_/_/' -e 's/__/_/g' -e 's/[_-]$//' -e 's/_0\t/\t/' > /scratch/report/flu_genotyping_codes.txt 
 
 rm ./excelcolumnextract.py
 
@@ -1618,15 +1618,21 @@ else
         state=`awk 'BEGIN{FS="\t"}{print $3}' ${sampleName}.information`
         echo "state $state"
         statespace=`awk 'BEGIN{FS="\t"}{print $3}' ${sampleName}.information | sed 's/_/ /g'`
-        #syear=`echo "$sample" | sed 's/-.*//'`
-        #echo "syear $syear"
-        #sampleyear=`echo "20${syear}"`
-        sampleyear=`awk 'BEGIN{FS="\t"}{print $5}' ${sampleName}.information`
-	echo "sampleyear $sampleyear"
-	
+        
+	#column 4: barcode
 	barcode=`grep "$sampleName" /scratch/report/flu_genotyping_codes.txt | awk '{print $4}' | sed 's/ //g'`
-	if [ -n $barcode -a $sample != $sampleName ]; then 
-	#if [ -n $barcode ] ; then
+
+        #column 5: collection year
+        sampleyear=`awk 'BEGIN{FS="\t"}{print $5}' ${sampleName}.information`
+        echo "sampleyear $sampleyear"
+	
+	#column 6: bpa
+	bpa=`grep "$sampleName" /scratch/report/flu_genotyping_codes.txt | awk '{print $6}' | sed 's/ //g'`
+	# -n True if string not empty
+	# -a True if file exist	
+	if [[ -n ${bpa} ]]; then 
+		sed -i "s;Identification Report:  ;Identification Report:  $bpa/;" $mytex
+	elif [ -n $barcode -a $sample != $sampleName ]; then 
 		echo "will make an addition"
 		sed -i "s;Identification Report:  ;Identification Report:  $sample/;" $mytex
 		sample=${barcode}
