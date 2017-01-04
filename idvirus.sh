@@ -1769,6 +1769,13 @@ rm param.txt
 cd $root
 cp ${sampleName}.assembly_graph.pdf graphic.pdf
 
+# if no graphic exist then create a message to prevent Latex from hanging
+if [ ! -f graphic.pdf ]; then
+    echo "no graph" > graphic.txt
+    enscript graphic.txt -B -j -r -f "Courier15" -o - | ps2pdf - graphic.pdf 
+    rm graphic.txt
+fi
+
 #echo "\vspace{5mm}" >> $mytex
 echo "" >> $mytex
 
