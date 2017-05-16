@@ -133,6 +133,7 @@ elif [[ $1 == vsv ]]; then
     email_list="tod.p.stuber@usda.gov Mary.L.Killian@aphis.usda.gov" #mia.kim.torchetti@aphis.usda.gov Suelee.Robbe-Austerman@aphis.usda.gov"
 
 elif [[ $1 == isav ]]; then
+    flu=yes
     genotypingcodes="NEED TO SET"
     krakenDatabase="/home/shared/databases/kraken/host-bac-vir"
     targetref=/bioinfo11/MKillian/Analysis/script_dependents/isav/*fasta
