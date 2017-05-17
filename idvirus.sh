@@ -16,7 +16,7 @@ mydb="/data/mydb"
 dzdo chmod 755 * ${mydb}/*
 for i in ${mydb}/*; do
 	if [ -s $i ]; then
-        	echo "file $i exists" 2> /dev/null
+        	echo "file $i exists" > /dev/null # don't print to screen
 	else
         	echo "file $i is empty and has been deleted"
 		rm -f $i
