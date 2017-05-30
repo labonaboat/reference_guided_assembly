@@ -545,7 +545,7 @@ refname=${ref%.fasta}
 ##
 bwa index $ref
 samtools faidx $ref
-java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
 
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
     echo "Index and dict are present, continue script"
@@ -553,7 +553,7 @@ else
     sleep 5
     echo "Either index or dict for reference is missing, try making again"
     samtools faidx $ref
-    java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+    java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
     if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
         read -p "--> Script has been paused.  Must fix.  No reference index and/or dict file present. Press Enter to continue.  Line $LINENO"
     fi
@@ -576,20 +576,20 @@ rm ${refname}.raw.bam
 samtools view -h -b -F4 ${refname}.sorted.bam > ./$refname.mappedReads.bam
 
 echo "***Marking Duplicates"
-java -Xmx2g -jar  ${picard} MarkDuplicates INPUT=${refname}.mappedReads.bam OUTPUT=$refname.dup.bam METRICS_FILE=$refname.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+java -Xmx1g -jar  ${picard} MarkDuplicates INPUT=${refname}.mappedReads.bam OUTPUT=$refname.dup.bam METRICS_FILE=$refname.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
 
 echo "***Index $refname.dup.bam"
 samtools index $refname.dup.bam
 
 echo "*** Calling VCFs with UnifiedGenotyper"
-java -Xmx2g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I $refname.dup.bam -o ${refname}.UG.vcf -nct 2
+java -Xmx1g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I $refname.dup.bam -o ${refname}.UG.vcf -nct 2
 
 if [ -s ${refname}.UG.vcf ]; then
     echo "${g}.UG.vcf present continueing script"
 else
     sleep 60
     echo "${refname}.UG.vcf is missing, try making again"
-    java -Xmx2g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${dupbam} -o ${refname}.UG.vcf -nct 2
+    java -Xmx1g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${dupbam} -o ${refname}.UG.vcf -nct 2
     if [ -s ${refname}.UG.vcf ]; then
         echo "${refname}.UG.vcf present continueing script"
     else
@@ -598,7 +598,7 @@ else
 fi
 
 # make reference guided contig
-java -Xmx2g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.readreference.fasta -V ${refname}.UG.vcf
+java -Xmx1g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.readreference.fasta -V ${refname}.UG.vcf
 
 #echo ">${refname}" > ${refname}.readreference.temp; awk ' $8 ~ /^AN=2/ {print $4} ' ${refname}.UG.vcf | tr -d [:space:] >> ${refname}.readreference.temp; echo "" >> ${refname}.readreference.temp; mv ${refname}.readreference.temp ${refname}.readreference.fasta
 
@@ -744,13 +744,13 @@ cat snps zeroformated | sort -nk2,2 > body
 cat header body > ${orgref}-${refname}.newhapreadyAll.vcf
 
 # make reference guided contig THIS IS THE FINAL REFERNCE.  THE LAST ALIGNMENT WILL BE MADE AND BLAST RESULTS WILL BE BASED ON THIS CONSENSUS SEQUENCE
-java -Xmx2g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${orgref}-${refname}.reference_guided.fasta -V ${orgref}-${refname}.newhapreadyAll.vcf -IUPAC ${orgref}-${refname}
+java -Xmx1g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${orgref}-${refname}.reference_guided.fasta -V ${orgref}-${refname}.newhapreadyAll.vcf -IUPAC ${orgref}-${refname}
 
 
 if [ $sampleType == "paired" ]; then
-    java -Xmx2g -jar ${picard} SamToFastq INPUT=${orgref}-${refname}.dup.bam FASTQ=./${orgref}-${refname}-mapped_R1.fastq SECOND_END_FASTQ=./${orgref}-${refname}-mapped_R2.fastq
+    java -Xmx1g -jar ${picard} SamToFastq INPUT=${orgref}-${refname}.dup.bam FASTQ=./${orgref}-${refname}-mapped_R1.fastq SECOND_END_FASTQ=./${orgref}-${refname}-mapped_R2.fastq
 else
-    java -Xmx2g -jar ${picard} SamToFastq INPUT=${orgref}-${refname}.dup.bam FASTQ=./${orgref}-${refname}-mapped_R1.fastq
+    java -Xmx1g -jar ${picard} SamToFastq INPUT=${orgref}-${refname}.dup.bam FASTQ=./${orgref}-${refname}-mapped_R1.fastq
 fi
 
 if [ $sampleType == "paired" ]; then
@@ -826,7 +826,7 @@ samtools faidx $ref
 
 #########################
 
-java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
 
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
     echo "Index and dict are present, continue script"
@@ -834,7 +834,7 @@ else
     sleep 5
     echo "Either index or dict for reference is missing, try making again"
     samtools faidx $ref
-    java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${n}-${refname}.dict
+    java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${n}-${refname}.dict
     if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
         read -p "--> Script has been paused.  Must fix.  No reference index and/or dict file present. Press Enter to continue.  Line $LINENO"
     fi
@@ -858,7 +858,7 @@ samtools view -h -b -F4 ${orgref}-${refname}.sorted.bam > ./${orgref}-${refname}
 samtools index ./${orgref}-${refname}.mappedReads.bam
 
 echo "***Marking Duplicates"
-java -Xmx2g -jar  ${picard} MarkDuplicates INPUT=${orgref}-${refname}.mappedReads.bam OUTPUT=${orgref}-${refname}.dup.bam METRICS_FILE=${orgref}-${refname}.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+java -Xmx1g -jar  ${picard} MarkDuplicates INPUT=${orgref}-${refname}.mappedReads.bam OUTPUT=${orgref}-${refname}.dup.bam METRICS_FILE=${orgref}-${refname}.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
 
 echo "***Index ${orgref}-${refname}.dup.bam"
 samtools index ${orgref}-${refname}.dup.bam
@@ -866,20 +866,20 @@ samtools index ${orgref}-${refname}.dup.bam
 ##############################
 echo $ref
 
-java -Xmx2g -jar ${gatk} -T ClipReads -R $ref -I ${orgref}-${refname}.dup.bam -o ${orgref}-${refname}.downsample.bam -filterNoBases -dcov 10
+java -Xmx1g -jar ${gatk} -T ClipReads -R $ref -I ${orgref}-${refname}.dup.bam -o ${orgref}-${refname}.downsample.bam -filterNoBases -dcov 10
 samtools index ${orgref}-${refname}.downsample.bam
 
 rm *UG.vcf
 
 echo "*** Calling VCFs with UnifiedGenotyper"
-java -Xmx2g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.UG.vcf -nct 2
+java -Xmx1g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.UG.vcf -nct 2
 
 if [ -s ${orgref}-${refname}.UG.vcf ]; then
     echo "${orgref}-${refname}.UG.vcf present continueing script"
 else
     sleep 60
     echo "${orgref}-${refname}.UG.vcf is missing, try making again"
-    java -Xmx2g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.UG.vcf -nct 2
+    java -Xmx1g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.UG.vcf -nct 2
     if [ -s ${orgref}-${refname}.UG.vcf ]; then
         echo "${orgref}-${refname}.UG.vcf present continueing script"
     else
@@ -894,7 +894,7 @@ fi
 #########
 
 # make reference guided contig using Unified Genotyper
-java -Xmx2g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.readreference.fasta -V ${orgref}-${refname}.UG.vcf
+java -Xmx1g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.readreference.fasta -V ${orgref}-${refname}.UG.vcf
 
 echo ">${refname}" > ${refname}.readreference.temp; grep -v ">" ${refname}.readreference.fasta >> ${refname}.readreference.temp; mv ${refname}.readreference.temp ${refname}.fasta
 rm ${refname}.readreference.*
@@ -907,7 +907,7 @@ echo "ref: $ref and refname: $refname"
 bwa index $ref
 samtools faidx $ref
 rm ${refname}.dict
-java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=$ref OUTPUT=${refname}.dict
+java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=$ref OUTPUT=${refname}.dict
 
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
     echo "Index and dict are present, continue script"
@@ -915,7 +915,7 @@ else
     sleep 5
     echo "Either index or dict for reference is missing, try making again"
     samtools faidx $ref
-    java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${n}-${refname}.dict
+    java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${n}-${refname}.dict
     if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
         read -p "--> Script has been paused.  Must fix.  No reference index and/or dict file present. Press Enter to continue.  Line $LINENO"
     fi
@@ -939,25 +939,25 @@ samtools view -h -b -F4 ${orgref}-${refname}.sorted.bam > ./${orgref}-${refname}
 samtools index ./${orgref}-${refname}.mappedReads.bam
 
 echo "***Marking Duplicates"
-java -Xmx2g -Xmx4g -jar  ${picard} MarkDuplicates INPUT=${orgref}-${refname}.mappedReads.bam OUTPUT=${orgref}-${refname}.dup.bam METRICS_FILE=${orgref}-${refname}.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+java -Xmx1g -Xmx4g -jar  ${picard} MarkDuplicates INPUT=${orgref}-${refname}.mappedReads.bam OUTPUT=${orgref}-${refname}.dup.bam METRICS_FILE=${orgref}-${refname}.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
 
 echo "***Index ${orgref}-${refname}.dup.bam"
 samtools index ${orgref}-${refname}.dup.bam
-java -Xmx2g -jar ${gatk} -T ClipReads -R $ref -I ${orgref}-${refname}.dup.bam -o ${orgref}-${refname}.downsample.bam -filterNoBases -dcov 10
+java -Xmx1g -jar ${gatk} -T ClipReads -R $ref -I ${orgref}-${refname}.dup.bam -o ${orgref}-${refname}.downsample.bam -filterNoBases -dcov 10
 samtools index ${orgref}-${refname}.downsample.bam
 ########
 
 #bam prepared now onto variant calling
-java -Xmx2g -jar ${gatk} -R $ref -T HaplotypeCaller -ploidy 1 -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.hapreadyAll.vcf -bamout ${orgref}-${refname}.bamout.bam -dontUseSoftClippedBases -allowNonUniqueKmersInRef 
-java -Xmx2g -jar ${igvtools} index ${orgref}-${refname}.hapreadyAll.vcf
+java -Xmx1g -jar ${gatk} -R $ref -T HaplotypeCaller -ploidy 1 -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.hapreadyAll.vcf -bamout ${orgref}-${refname}.bamout.bam -dontUseSoftClippedBases -allowNonUniqueKmersInRef 
+java -Xmx1g -jar ${igvtools} index ${orgref}-${refname}.hapreadyAll.vcf
 
 if [ -s ${orgref}-${refname}.hapreadyAll.vcf ]; then
     echo "${orgref}-${refname}.hapreadyAll.vcf present continueing script"
 else
     sleep 60
     echo "${orgref}-${refname}.hapreadyAll.vcf is missing, try making again"
-    java -Xmx2g -jar ${gatk} -R $ref -T HaplotypeCaller -ploidy 1 -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.hapreadyAll.vcf -bamout ${orgref}-${refname}.bamout.bam -dontUseSoftClippedBases -allowNonUniqueKmersInRef
-    java -Xmx2g -jar ${igvtools} index ${orgref}-${refname}.hapreadyAll.vcf
+    java -Xmx1g -jar ${gatk} -R $ref -T HaplotypeCaller -ploidy 1 -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.hapreadyAll.vcf -bamout ${orgref}-${refname}.bamout.bam -dontUseSoftClippedBases -allowNonUniqueKmersInRef
+    java -Xmx1g -jar ${igvtools} index ${orgref}-${refname}.hapreadyAll.vcf
     if [ -s ${orgref}-${refname}.hapreadyAll.vcf ]; then
         echo "${orgref}-${refname}.hapreadyAll.vcf present continueing script"
     else
@@ -1041,7 +1041,7 @@ refname=${ref%.fasta}
 
 bwa index $ref
 samtools faidx $ref
-java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
 
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
     echo "Index and dict are present, continue script"
@@ -1049,7 +1049,7 @@ else
     sleep 5
     echo "Either index or dict for reference is missing, try making again"
     samtools faidx $ref
-    java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+    java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
     if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
         read -p "--> Script has been paused.  Must fix.  No reference index and/or dict file present. Press Enter to continue.  Line $LINENO"
     fi
@@ -1071,14 +1071,14 @@ rm ${refname}.sam
 rm ${refname}.raw.bam
 
 echo "*** Calling VCFs with UnifiedGenotyper"
-java -Xmx2g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${refname}.sorted.bam -o ${refname}.UG.vcf -nct 2
+java -Xmx1g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${refname}.sorted.bam -o ${refname}.UG.vcf -nct 2
 
 if [ -s ${refname}.UG.vcf ]; then
     echo "${refname}.UG.vcf present continueing script"
 else
     sleep 60
     echo "${refname}.UG.vcf is missing, try making again"
-    java -Xmx2g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${refname}.sorted.bam -o ${refname}.UG.vcf -nct 2
+    java -Xmx1g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -out_mode EMIT_ALL_SITES -I ${refname}.sorted.bam -o ${refname}.UG.vcf -nct 2
     if [ -s ${refname}.UG.vcf ]; then
         echo "${refname}.UG.vcf present continueing script"
     else
@@ -1087,7 +1087,7 @@ else
 fi
 
 # make reference guided contig
-java -Xmx2g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.readreference.fasta -V ${refname}.UG.vcf
+java -Xmx1g -jar ${gatk} -T FastaAlternateReferenceMaker -R $ref -o ${refname}.readreference.fasta -V ${refname}.UG.vcf
 
 sed 's/NN//g' < ${refname}.readreference.fasta > ${refname}.readreference.temp; mv ${refname}.readreference.temp ${refname}.readreference.fasta
 
@@ -1160,7 +1160,7 @@ refname=${ref%.fasta}
 
 bwa index $ref
 samtools faidx $ref
-java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
 
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
     echo "Index and dict are present, continue script"
@@ -1168,7 +1168,7 @@ else
     sleep 5
     echo "Either index or dict for reference is missing, try making again"
     samtools faidx $ref
-    java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+    java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
     if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
         read -p "--> Script has been paused.  Must fix.  No reference index and/or dict file present. Press Enter to continue.  Line $LINENO"
     fi
@@ -1422,7 +1422,7 @@ orgref="igvalignment"
 
 bwa index $ref
 samtools faidx $ref
-java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
+java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
 
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
 echo "Index and dict are present, continue script"
@@ -1430,7 +1430,7 @@ else
 sleep 5
 echo "Either index or dict for reference is missing, try making again"
 samtools faidx $ref
-java -Xmx2g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${n}-${refname}.dict
+java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${n}-${refname}.dict
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
 read -p "--> Script has been paused.  Must fix.  No reference index and/or dict file present. Press Enter to continue.  Line $LINENO"
 fi
@@ -1456,15 +1456,15 @@ samtools view -h -b -F4 ${orgref}-${refname}.sorted.bam > ./${orgref}-${refname}
 samtools index ./${orgref}-${refname}.mappedReads.bam
 
 echo "***Marking Duplicates"
-java -Xmx2g -jar  ${picard} MarkDuplicates INPUT=${orgref}-${refname}.mappedReads.bam OUTPUT=${orgref}-${refname}.dup.bam METRICS_FILE=${orgref}-${refname}.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
+java -Xmx1g -jar  ${picard} MarkDuplicates INPUT=${orgref}-${refname}.mappedReads.bam OUTPUT=${orgref}-${refname}.dup.bam METRICS_FILE=${orgref}-${refname}.FilteredReads.xls ASSUME_SORTED=true REMOVE_DUPLICATES=true
 
 echo "***Index ${orgref}-${refname}.dup.bam"
 samtools index ${orgref}-${refname}.dup.bam
-java -Xmx2g -jar ${gatk} -T ClipReads -R $ref -I ${orgref}-${refname}.dup.bam -o ${orgref}-${refname}.downsample.bam -filterNoBases -dcov 10
+java -Xmx1g -jar ${gatk} -T ClipReads -R $ref -I ${orgref}-${refname}.dup.bam -o ${orgref}-${refname}.downsample.bam -filterNoBases -dcov 10
 samtools index ${orgref}-${refname}.downsample.bam
 
 # Make a quick and simple VCF to highlight possible problem areas of the consensus
-java -Xmx2g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.UG.vcf -nct 8
+java -Xmx1g -jar ${gatk} -R $ref -T UnifiedGenotyper -glm BOTH -I ${orgref}-${refname}.downsample.bam -o ${orgref}-${refname}.UG.vcf -nct 8
 
 #############################
 
