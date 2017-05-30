@@ -1161,6 +1161,7 @@ refname=${ref%.fasta}
 bwa index $ref
 samtools faidx $ref
 
+#scatter Java usage to prevent resources errors
 RANGE=10
 number=$RANDOM
 let "number %= $RANGE"
