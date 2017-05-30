@@ -1160,6 +1160,11 @@ refname=${ref%.fasta}
 
 bwa index $ref
 samtools faidx $ref
+
+RANGE=10
+number=$RANDOM
+let "number %= $RANGE"
+sleep ${number}
 java -Xmx1g -jar ${picard} CreateSequenceDictionary REFERENCE=${ref} OUTPUT=${refname}.dict
 
 if [ -s ${ref}.fai ] && [ -s ${refname}.dict ]; then
