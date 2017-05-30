@@ -59,6 +59,7 @@ pingyrdb=""
 #####################################################
 
 function getfluname () {
+echo "########################"
 
 echo "using xlrd to get flu genotyping codes from MiSeq_Samples.xlsx"
 date
@@ -1259,7 +1260,7 @@ printf "%-20s %11.2f%% %'10dX\n" ${refname} $perc $meancov >> ${root}/${s}/${sam
         		echo "working on $sampleName $s $i"
        			cd ${i%.fasta}; findbest) &
 	        let count+=1
-                [[ $((count%55)) -eq 0 ]] && wait
+                [[ $((count%25)) -eq 0 ]] && wait
     		done
 		fi
 	wait
@@ -1281,7 +1282,7 @@ printf "%-20s %11.2f%% %'10dX\n" ${refname} $perc $meancov >> ${root}/${s}/${sam
 	rm -r ${best}
 	mv *fasta ${segmentname}.fasta) &
                 let count+=1
-                [[ $((count%55)) -eq 0 ]] && wait
+                [[ $((count%25)) -eq 0 ]] && wait
 	done
 
 	wait
@@ -1291,7 +1292,7 @@ printf "%-20s %11.2f%% %'10dX\n" ${refname} $perc $meancov >> ${root}/${s}/${sam
 	for i in segment*; do 
 		(echo ""; echo "####### $i ########"; echo ""; cd ${root}; cd $i; alignreads) &
                 let count+=1
-                [[ $((count%55)) -eq 0 ]] && wait
+                [[ $((count%25)) -eq 0 ]] && wait
 	done
 
 else
