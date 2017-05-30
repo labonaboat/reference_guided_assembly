@@ -1176,9 +1176,9 @@ fi
 
 #adding -B 8 will require reads to have few mismatches to align to reference.  -B 1 will allow the most mismatch per read. -A [1] may be increased to increase the number of mismatches allow
 if [[ $sampleType == "paired" ]]; then
-    bwa mem -M -B 1 -t 10 -T 20 -P -a -R @RG"\t"ID:"$refname""\t"PL:ILLUMINA"\t"PU:"$refname"_RG1_UNIT1"\t"LB:"$refname"_LIB1"\t"SM:"$refname" $ref $forReads $revReads > ${refname}.sam
+    bwa mem -M -B 1 -t 4 -T 20 -P -a -R @RG"\t"ID:"$refname""\t"PL:ILLUMINA"\t"PU:"$refname"_RG1_UNIT1"\t"LB:"$refname"_LIB1"\t"SM:"$refname" $ref $forReads $revReads > ${refname}.sam
 else
-    bwa mem -M -B 1 -t 10 -T 20 -P -a -R @RG"\t"ID:"$refname""\t"PL:ILLUMINA"\t"PU:"$refname"_RG1_UNIT1"\t"LB:"$refname"_LIB1"\t"SM:"$refname" $ref $forReads > ${refname}.sam
+    bwa mem -M -B 1 -t 4 -T 20 -P -a -R @RG"\t"ID:"$refname""\t"PL:ILLUMINA"\t"PU:"$refname"_RG1_UNIT1"\t"LB:"$refname"_LIB1"\t"SM:"$refname" $ref $forReads > ${refname}.sam
 fi
 
 samtools view -bh -F4 -T $ref ${refname}.sam > ${refname}.raw.bam
@@ -1260,7 +1260,7 @@ printf "%-20s %11.2f%% %'10dX\n" ${refname} $perc $meancov >> ${root}/${s}/${sam
         		echo "working on $sampleName $s $i"
        			cd ${i%.fasta}; findbest) &
 	        let count+=1
-                [[ $((count%25)) -eq 0 ]] && wait
+                [[ $((count%10)) -eq 0 ]] && wait
     		done
 		fi
 	wait
