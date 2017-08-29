@@ -1836,8 +1836,8 @@ fi
 echo "\end{document}" >> $mytex
 echo "" >> $mytex
 
-pdflatex $mytex
-pdflatex $mytex
+pdflatex -interaction=nonstopmode $mytex
+pdflatex -interaction=nonstopmode $mytex
 mv $sampleName.pdf ${sampleName}-report.pdf
 
 #rm *fastq*
