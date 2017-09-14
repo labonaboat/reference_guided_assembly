@@ -14,7 +14,7 @@ script, acc, writeFile = argv
 entrezDbName = 'nucleotide'
 Entrez.email = 'tod.p.stuber@usda.gov'
 
-entryData = Entrez.efetch(db=entrezDbName, id=gi, retmode="text", rettype='fasta')
+entryData = Entrez.efetch(db=entrezDbName, id=acc, retmode="text", rettype='fasta')
 
 local_file=open(writeFile,"w")
 local_file.write(entryData.read())
