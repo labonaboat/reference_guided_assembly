@@ -474,7 +474,7 @@ if [ "$kflag" ]; then
 
     if [[ $1 == flu ]]; then
         echo "------> jhu Building Krona Graph..."
-        kraken2krona.sh -i $sampleName-output.txt -k ${krakenDatabase} -o $sampleName-jhu-output.txt -r $sampleName-jhu-Krona_id_graphic.html
+        krakenreport2krona.sh -i $sampleName-kraken_report.txt -k ${krakenDatabase} -t $sampleName-jhu-output.txt -o $sampleName-jhu-Krona_id_graphic.html
     else
         # Run Krona
         echo "------> ours Building Krona Graph..."
