@@ -1977,9 +1977,12 @@ if [ "$eflag" ]; then
 else
 	# else when idvirus.sh is ran on its own
 	if [ "$mflag" ]; then
-    		email_list="tod.p.stuber@usda.gov"
-    		cat ${emailbody} | mutt -s "Sample: ${sampleName}, $subtype Reference_Set: $argUsed" -a `cat emailfiles` -- $email_list
-    		rm emailfile*
+    		#email_list="tod.p.stuber@usda.gov"
+    		#cat ${emailbody} | mutt -s "Sample: ${sampleName}, $subtype Reference_Set: $argUsed" -a `cat emailfiles` -- $email_list
+    		echo "No Email sent"
+            echo "copying files..."
+            cp -r $PWD ${bioinfoVCF} &
+            rm emailfile*
 	else
     		echo "" >> ${emailbody}
     		echo "Files copied to: ${bioinfoVCF}" >> ${emailbody}		
