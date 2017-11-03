@@ -1,0 +1,10 @@
+argparse
+provide seed genome
+	give argument which points to path
+	give path that searches seeds with all FASTAs in path
+	give a single genome
+	
+	if multiple genomes determine which has the most % genome coverage
+	
+xblast this genome.
+align to top hit
