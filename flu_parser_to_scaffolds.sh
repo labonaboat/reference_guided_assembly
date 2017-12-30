@@ -23,8 +23,8 @@ for f in *; do
     cd $currentdir
     echo $f; cd ./$f
     if [ -f *R2* ]; then
-        trimreads.sh
-        cd trimmedreads
+        #trimreads.sh
+        #cd trimmedreads
         # possibly k77 to complete a contig that is truncated, but appears k127 is best overall
         # the smaller k value sometimes creates false ends 
         (spades.py -t 32 -k 127 --careful -1 *_R1.fastq.gz -2 *_R2.fastq.gz -o ./
@@ -65,8 +65,8 @@ for f in *; do
         mv ${n}.readreference.fasta scaffolds.fasta) &
         #####
     else
-        trimreads-iontorrent.sh
-        cd trimmedreads 
+        #trimreads-iontorrent.sh
+        #cd trimmedreads 
         spades.py -k 45,47,49,51,53,57,59,61,63,65,77,99,127 --mismatch-correction -s *.fastq.gz -o ./ &
     fi
 done; wait
@@ -75,7 +75,7 @@ cd $cdir/isolated_reads
 
 mkdir scaffolds
 for i in *; do
-    cp $i/trimmedreads/scaffolds.fasta scaffolds/${i}_scaffolds.fasta
+    cp $i/scaffolds.fasta scaffolds/${i}_scaffolds.fasta
 done
 
 mv scaffolds $cdir/scaffolds_from_isolated_reads
