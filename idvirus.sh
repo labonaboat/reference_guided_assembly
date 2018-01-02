@@ -100,7 +100,7 @@ if [[ $1 == flu ]]; then
     genotypingcodes="/scratch/report/flu_genotyping_codes.txt"
     krakenDatabase="/home/shared/databases/kraken/flu_jhu/fludb_20150820_with_hosts"
     pingyrdb=yes #(yes or no) Do you want to BLAST pintail gyrfalcon database
-    targetref=/bioinfo14/zzold_MKillian/Analysis/script_dependents/ai/flu/*fasta
+    targetref=/bioinfo14/MKillian/Analysis/script_dependents/ai/flu/*fasta
     bioinfoVCF="/bioinfo14/MKillian/Analysis/results/influenza/newfiles"
     echo "idvirus.sh ran targeting $1"
     echo "Script idvirus.sh ran targeting $1"
@@ -1531,7 +1531,7 @@ echo "subtype: $subtype"
 if [[ -n $subtype ]]; then
         echo "Subtype: $subtype" >> ${summaryfile}
 	echo "Subtype: $subtype" >> $idscriptrunsummary
-	echo "Subtype: $subtype" >> /bioinfo14/TStuber/Results/viruses/idvirus_run_summary.txt
+	echo "Subtype: $subtype" >> /bioinfo11/TStuber/Results/viruses/idvirus_run_summary.txt
 
 	sed -i "s/XXXXXHNTYPEXXXXXXX/Subtype: $subtype/" $mytex
 
