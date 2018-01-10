@@ -13,7 +13,7 @@ pythonGetFasta=`which GetFASTAbyGI.py`
 # NCBI downloaded reference location
 mydb="/data/mydb"
 #Delete files in local database that may be empty
-dzdo chmod 755 * ${mydb}/*
+#dzdo chmod 755 * ${mydb}/*
 for i in ${mydb}/*; do
 	if [ -s $i ]; then
         	echo "file $i exists" > /dev/null # don't print to screen
