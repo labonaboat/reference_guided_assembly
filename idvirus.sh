@@ -457,31 +457,33 @@ echo "\end{table}" >> ${mytex}.filestats
 #######################################################################################
 
 if [ "$kflag" ]; then
-    echo "Kraken database selected is: $krakenDatabase"
-    date
-    echo "*** Kraken is finding reads"
-    #Run Kraken
-    if [[ $sampleType == "paired" ]]; then
-        kraken --db ${krakenDatabase} --threads ${NR_CPUS} --paired *fastq* > $sampleName-output.txt && kraken-report --db ${krakenDatabase} $sampleName-output.txt > $sampleName-kraken_report.txt
-    else
-        kraken --db ${krakenDatabase} --threads ${NR_CPUS}  $forReads > $sampleName-output.txt && kraken-report --db ${krakenDatabase} $sampleName-output.txt > $sampleName-kraken_report.txt
-    fi
-    
-    date
-    echo "*** Krona transforming Kraken output to graph"
-    
-    echo "$1"
 
-    if [[ $1 == flu ]]; then
-        echo "------> jhu Building Krona Graph..."
-        krakenreport2krona.sh -i $sampleName-kraken_report.txt -k ${krakenDatabase} -t $sampleName-jhu-output.txt -o $sampleName-jhu-Krona_id_graphic.html
-    else
-        # Run Krona
-        echo "------> ours Building Krona Graph..."
-        cut -f2,3 $sampleName-output.txt > $sampleName-kronaInput.txt;
-        /usr/local/bin/ktImportTaxonomy $sampleName-kronaInput.txt;
-        mv taxonomy.krona.html $sampleName-Krona_identification_graphic.html;
-        mv taxonomy.krona.html.files $sampleName-taxonomy.krona.html.files
+    echo "KRAKEN IS TURNED OFF"
+    # echo "Kraken database selected is: $krakenDatabase"
+    # date
+    # echo "*** Kraken is finding reads"
+    # #Run Kraken
+    # if [[ $sampleType == "paired" ]]; then
+    #     kraken --db ${krakenDatabase} --threads ${NR_CPUS} --paired *fastq* > $sampleName-output.txt && kraken-report --db ${krakenDatabase} $sampleName-output.txt > $sampleName-kraken_report.txt
+    # else
+    #     kraken --db ${krakenDatabase} --threads ${NR_CPUS}  $forReads > $sampleName-output.txt && kraken-report --db ${krakenDatabase} $sampleName-output.txt > $sampleName-kraken_report.txt
+    # fi
+    
+    # date
+    # echo "*** Krona transforming Kraken output to graph"
+    
+    # echo "$1"
+
+    # if [[ $1 == flu ]]; then
+    #     echo "------> jhu Building Krona Graph..."
+    #     krakenreport2krona.sh -i $sampleName-kraken_report.txt -k ${krakenDatabase} -t $sampleName-jhu-output.txt -o $sampleName-jhu-Krona_id_graphic.html
+    # else
+    #     # Run Krona
+    #     echo "------> ours Building Krona Graph..."
+    #     cut -f2,3 $sampleName-output.txt > $sampleName-kronaInput.txt;
+    #     /usr/local/bin/ktImportTaxonomy $sampleName-kronaInput.txt;
+    #     mv taxonomy.krona.html $sampleName-Krona_identification_graphic.html;
+    #     mv taxonomy.krona.html.files $sampleName-taxonomy.krona.html.files
     fi
 
     # Set variables and paths
