@@ -484,49 +484,49 @@ if [ "$kflag" ]; then
     #     /usr/local/bin/ktImportTaxonomy $sampleName-kronaInput.txt;
     #     mv taxonomy.krona.html $sampleName-Krona_identification_graphic.html;
     #     mv taxonomy.krona.html.files $sampleName-taxonomy.krona.html.files
-    fi
+    # fi
 
-    # Set variables and paths
-    output=`ls *-output.txt`
-    report=`ls *kraken_report.txt`
-    ls -lh $output
-    ls -lh $report
+    # # Set variables and paths
+    # output=`ls *-output.txt`
+    # report=`ls *kraken_report.txt`
+    # ls -lh $output
+    # ls -lh $report
     
-    printf "%s, %s file size, %s reads\n" ${forFile} ${forFileSize} ${forCount}
+    # printf "%s, %s file size, %s reads\n" ${forFile} ${forFileSize} ${forCount}
 
-    if [[ $sampleType == "paired" ]]; then
-        printf "%s, %s file size, %s reads\n" ${revFile} ${revFileSize} ${revCount}
-    fi
+    # if [[ $sampleType == "paired" ]]; then
+    #     printf "%s, %s file size, %s reads\n" ${revFile} ${revFileSize} ${revCount}
+    # fi
 
-    forCount=`grep -c '^+$' $forReads`
-    echo "forCount: $forCount"
-    declare -i x=${forCount}
-    declare -i y=${revCount}
-    echo "x: $x"
-    echo "y: $y"
-    echo "" | awk -v x=$x -v y=$y '{printf "Total single end read count: %'\''d\n", x+y}'
+    # forCount=`grep -c '^+$' $forReads`
+    # echo "forCount: $forCount"
+    # declare -i x=${forCount}
+    # declare -i y=${revCount}
+    # echo "x: $x"
+    # echo "y: $y"
+    # echo "" | awk -v x=$x -v y=$y '{printf "Total single end read count: %'\''d\n", x+y}'
 
-    #Section of results summary that calculates number of reads per type of organism (ex: ssRNA virus)
-    echo "Summary of Kraken Findings"
-    cRead=`grep -c "^C" $output`
-    #uRead=`grep -c "^U" $output`
-    virusreport=`awk ' $5 == "10239" {print $2}' $report`
-    #let allReads=`wc -l $output | awk '{print $1}'`
-    echo "allReads: $allReads"
+    # #Section of results summary that calculates number of reads per type of organism (ex: ssRNA virus)
+    # echo "Summary of Kraken Findings"
+    # cRead=`grep -c "^C" $output`
+    # #uRead=`grep -c "^U" $output`
+    # virusreport=`awk ' $5 == "10239" {print $2}' $report`
+    # #let allReads=`wc -l $output | awk '{print $1}'`
+    # echo "allReads: $allReads"
 
-    if [ -z $virusreport ]; then
-        virusreport="zero"
-    fi
-    declare -i v=${virusreport}
-    #declare -i z=${allReads}
-    declare -i z=${forCount}
-    echo "v is $v"
-    echo "z is $z"
+    # if [ -z $virusreport ]; then
+    #     virusreport="zero"
+    # fi
+    # declare -i v=${virusreport}
+    # #declare -i z=${allReads}
+    # declare -i z=${forCount}
+    # echo "v is $v"
+    # echo "z is $z"
     
-    pvRead=`awk -v v=$v -v z=$z 'BEGIN { print (v / z)*100 }'`
+    # pvRead=`awk -v v=$v -v z=$z 'BEGIN { print (v / z)*100 }'`
 
-    echo "`printf "%'.0f\n" ${virusreport}` virus reads --> ${pvRead}% of total reads" >> $summaryfile
-    echo "`printf "%'.0f\n" ${virusreport}` virus reads --> ${pvRead}% of total reads" >> $emailbody
+    # echo "`printf "%'.0f\n" ${virusreport}` virus reads --> ${pvRead}% of total reads" >> $summaryfile
+    # echo "`printf "%'.0f\n" ${virusreport}` virus reads --> ${pvRead}% of total reads" >> $emailbody
 else
     echo "Kraken not ran"
 fi
