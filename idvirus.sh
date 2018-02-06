@@ -1968,8 +1968,8 @@ echo "$sampleName"
 echo "$subtype"
 echo "$argUsed"
 
-echo "Running IRMA..."
-IRMA FLU originalreads/*R1*gz originalreads/*R2*gz ${sampleName}-IRMA_OUT
+echo "Running IRMA"
+read -p "Enter line $LINENO"
 
 if [ "$eflag" ]; then
 	# eflag is used when script is called from idemail.sh
