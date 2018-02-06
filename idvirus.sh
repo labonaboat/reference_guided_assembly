@@ -1966,9 +1966,6 @@ echo "$sampleName"
 echo "$subtype"
 echo "$argUsed"
 
-echo "Running IRMA"
-read -p "Enter line $LINENO"
-
 if [ "$eflag" ]; then
 	# eflag is used when script is called from idemail.sh
 	# making summary file to send in email
