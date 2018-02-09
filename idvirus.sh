@@ -239,6 +239,7 @@ else
 
 fi
 
+NR_CPUS=8
 echo "Core number being used: $NR_CPUS"
 sleep 4
 
