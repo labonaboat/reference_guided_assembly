@@ -1505,7 +1505,7 @@ mv ${sampleName}-consensus-max1-nt.temp ${sampleName}-consensus-max1-nt.txt
 
 echo "" >> ${summaryfile}
 
-hsegment=`grep "segment4" ${sampleName}-consensus-max1-nt.txt | sed 's/.*\(H[0-9]\{1,2\}\).*/\1/' | head -1`
+hsegment=`grep "segment4" ${sampleName}-consensus-max1-nt.txt | sed 's/.*(\(H[0-9]\{1,2\}\).*/\1/' | head -1`
 echo "hsegment: $hsegment"
 nsegment=`grep "segment6" ${sampleName}-consensus-max1-nt.txt | sed 's/.*\(N[0-9]\{1,2\}\).*/\1/' | head -1`
 echo "nsegment: $nsegment"
